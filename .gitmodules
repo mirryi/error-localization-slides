@@ -1,0 +1,3 @@
+[submodule "submodules/agda"]
+	path = submodules/agda
+	url = git@github.com:hazelgrove/error-localization-agda.git

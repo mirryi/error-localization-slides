@@ -1,0 +1,77 @@
+% \begin{frame}{}
+  % \begin{columns}
+    % \begin{column}{0.5\linewidth}
+      % \begin{itemize}
+        % \item 
+      % \end{itemize}
+    % \end{column}
+    % \begin{column}{0.5\linewidth}
+      % \begin{itemize}
+        % \item 
+      % \end{itemize}
+    % \end{column}
+  % \end{columns}
+% \end{frame}
+
+\begin{frame}[fragile]{Familiar sights}
+  A
+\end{frame}
+
+\begin{frame}{Nowadays\ldots}
+  \begin{itemize}
+    \item We program with high-level abstractions \\ \pause
+      but these abstractions can be complex!
+
+      \pause
+    \item We rely on help from our editors \\ \pause
+      so they provide \emph{rich semantic services}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{A definitional gap problem}
+  \begin{center}
+    Most of the code we write is \textbf{ill-formed}\pause,
+    but conventional language definitions \textbf{only specify the behaviour of well-formed programs}.
+  \end{center}
+  \pause
+  \[%
+    \Downarrow
+  \]%
+
+  \begin{center}
+    If a type error appears \textbf{anywhere},\\
+    the program is meaningless \textbf{everywhere}.
+  \end{center}
+\end{frame}
+
+\begin{frame}{The goal}
+  We'd like to be able to \emph{formally} specify type checkers that \\[1em]
+
+  \pause
+  \begin{itemize}
+    \item describe where and what the error is \pause (\emph{localization})
+    
+      \pause
+    \item carry on in spite of it \pause (\emph{recovery})
+  \end{itemize}
+
+  \vspace{1em}
+  \pause
+  \textbf{Guiding principle:} \\
+  \pause
+  These semantics should describe \emph{all syntactically well-formed programs}.
+\end{frame}
+
+\begin{frame}{This paper is about\ldots}
+  \begin{itemize}
+    \item<+-> the \textbf{marked lambda calculus}%
+      \uncover<+->{: a judgmental framework for \onderline<+->{total} type error localization and recovery}
+
+      \begin{itemize}
+        \item<+-> with extensions to richer typing features
+        \item<+-> and an Agda mechanization
+      \end{itemize}
+
+    \item<+-> a system for constraint-based \textbf{type hole inference}
+  \end{itemize}
+\end{frame}

@@ -1,0 +1,120 @@
+\newcommand{\entails}{\ensuremath{\goodcolor{\colorOkSideJudge}{\vdash}}}
+\newcommand{\syn}{\ensuremath{\goodcolor{\colorOkSideJudge}{\Rightarrow}}}
+\newcommand{\ana}{\ensuremath{\goodcolor{\colorOkSideJudge}{\Leftarrow}}}
+
+\newcommand{\ctxSyn}[3]{\ensuremath{#1 \entails #2 \syn #3}}
+\newcommand{\ctxAna}[3]{\ensuremath{#1 \entails #2 \ana #3}}
+
+\begin{frame}[fragile]{Marked lambda calculus: a tutorial}
+  \textbf{Start:} a small gradually typed lambda calculus
+  %
+  \begin{figurebox}
+    \[\begin{array}{rcl}
+      \TMV  & \Coloneqq & \TUnknown \mid \TNum \mid \TBool \mid \TArrow{\TMV}{\TMV} \\
+      \EMV  & \Coloneqq & x \mid \ELam{x}{\TMV}{\EMV} \mid \EAp{\EMV}{\EMV}
+              \mid           \ENumMV \mid \ETrue \mid \EFalse
+    \end{array}\]
+  \end{figurebox}
+
+  \pause
+
+  \hphantom{\textbf{Start:} }with a standard bidirectional type system
+  %
+  \pause
+  \[\begin{array}{rl}
+    \ctxSyn{\ctx}{\EMV}{\TMV} & \textsc{\small(synthesis)} \\ \pause
+    \ctxAna{\ctx}{\EMV}{\TMV} & \textsc{\small(analysis)}
+  \end{array}\]
+\end{frame}
+
+\begin{frame}[fragile]{Typing variable occurrences}
+  Synthesizing the type of a variable is standard:
+  \[%
+    \inferrule[SVar]{
+      \only<2->{\colorbox{highlight}{\inCtx{\ctx}{x}{\TMV}}}
+    }{
+      \only<1->{\ctxSyn{\ctx}{x}{\TMV}}
+    }
+  \]%
+
+  \pause
+  \pause
+  But what if $\notInCtx{\ctx}{x}$?
+  \hfill
+  \pause
+  $\inCtx{\ctx}{x}{\TMV}$ is `fallible'!
+\end{frame}
+
+\begin{frame}[fragile]{Typing variable occurrences}
+  How do we handle this failure case?
+
+  \begin{lstlisting}[style=OCaml, escapechar=@]
+let rec syn ctx e =
+  match e with
+    Var x ->
+      match Ctx.lookup ctx x with
+        Some ty -> @\only<1-3>{ty}\only<4>{\goodcolor{PineGreen}{Some(ty)}}\only<5>{\goodcolor{PineGreen}{Ok(ty)}}@
+        None    -> @\goodcolor{red}{\only<1>{???}\only<2>{assert false}\only<3>{failwith (x ++ " is unbound")}\only<4>{None}\only<5>{Error(UnboundError(...))}}@
+    ...
+  \end{lstlisting}
+
+  \only<1>{\phantom{Option 1}}
+  \only<2>{Option 1: crash}
+  \only<3>{Option 2: raise an exception}
+  \only<4>{Option 3: return \texttt{Option.None}}
+  \only<5>{Option 4: return \texttt{Result.Error} with some diagnostic information}
+\end{frame}
+
+\begin{frame}[fragile]{Typing variable occurrences}
+  We've \emph{localized} the error: \pause ``this occurrence of $x$ is unbound!'' \\[1em]
+
+  \pause
+  How can we \emph{recover}? \\[1em]
+
+  \pause
+  \textbf{Solution:} $\TUnknown$
+\end{frame}
+
+\begin{frame}[fragile]{From type checking to \textsc{marking}}
+  \textbf{Solution:} augment the type checking process with \emph{marking}! \\[1em]
+
+  \pause
+  \begin{itemize}
+    \item localize and report the error as a \emph{mark}
+
+      \pause
+    \item use the unknown type to encapsulate missing type information
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{The free variable mark}
+  Supplement the \emph{unmarked} surface syntax into a \emph{marked} one:
+
+  \[\begin{array}{rcl}
+    \TMV  & \Coloneqq & \TUnknown \mid \TNum \mid \TBool \mid \TArrow{\TMV}{\TMV} \\
+    \EMV  & \Coloneqq & x \mid \ELam{x}{\TMV}{\EMV} \mid \EAp{\EMV}{\EMV}
+            \mid           \ENumMV \mid \ETrue \mid \EFalse \\ \pause
+    \ECMV & \Coloneqq & x \mid \ECLam{x}{\TMV}{\ECMV} \mid \ECAp{\ECMV}{\ECMV}
+            \mid           \ECNumMV \mid \ECTrue \mid \ECFalse
+            \mid           \ECFree{x}
+  \end{array}\]
+
+  \pause
+  $\ECFree{x}$ is a \emph{marked expression} denoting a free occurrence of $x$
+\end{frame}
+
+\begin{frame}[fragile]{Marking free variables}
+  \begin{columns}
+    \begin{column}{0.5\textwidth}
+      \only<1>{
+      \[\begin{array}{rl}
+        \ctxSyn{\ctx}{\EMV}{\TMV} & \textsc{\small(synthesis)} \\
+        \ctxAna{\ctx}{\EMV}{\TMV} & \textsc{\small(analysis)}
+      \end{array}\]
+      }
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      
+    \end{column}
+  \end{columns}
+\end{frame}

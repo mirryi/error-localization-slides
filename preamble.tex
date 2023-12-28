@@ -1,0 +1,49 @@
+\usepackage{csquotes}
+\usepackage{listings}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{mathtools}
+\usepackage{mathpartir}
+\usepackage{stmaryrd}
+\usepackage{bm}
+
+\usepackage[style=trad-abbrv, sortcites, backend=biber]{biblatex}
+\setbeamertemplate{bibliography item}[text]
+
+% small footnotes
+\setbeamerfont{footnote}{size=\tiny}
+
+\setmonofont[
+  Contextuals={Alternate},
+  Scale=MatchLowercase
+]{Fira Code}
+
+% hyperlink style
+\hypersetup{
+    linkcolor=blue,
+    filecolor=magenta,
+    urlcolor=cyan,
+}
+\urlstyle{same}
+
+% piece-wise uncovering of elements in TikZ pictures
+% \tikzset{
+  % invisible/.style={opacity=0},
+  % visible on/.style={alt={#1{}{invisible}}},
+  % alt/.code args={<#1>#2#3}{%
+    % \alt<#1>{\pgfkeysalso{#2}}{\pgfkeysalso{#3}}
+  % },
+% }
+
+% default listing style
+\lstdefinestyle{default}{%
+  basicstyle=\ttfamily\footnotesize,
+  showspaces=false,
+  showstringspaces=false,
+  showtabs=false,
+  tabsize=1,
+  commentstyle=\color{black!60}
+}
+\lstset{style=default}
