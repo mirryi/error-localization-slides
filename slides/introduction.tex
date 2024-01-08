@@ -24,54 +24,66 @@
 
       \pause
     \item We rely on help from our editors \\ \pause
-      so they provide \emph{rich semantic services}
+      which provide \emph{rich semantic services}!
+
+      \pause
+    \item We write a lot of ill-formed code \\ \pause
+      so services must be error-resilient!
   \end{itemize}
 \end{frame}
 
 \begin{frame}{A definitional gap problem}
   \begin{center}
-    Most of the code we write is \textbf{ill-formed}\pause,
-    but conventional language definitions \textbf{only specify the behaviour of well-formed programs}.
+    Most of the code we write is \textcolor{RedOrange}{\textbf{ill-formed}}\pause,
+    but conventional language definitions
+    \textcolor{RedOrange}{\textbf{only specify the behaviour of well-formed programs}}.
   \end{center}
   \pause
   \[%
-    \Downarrow
+    \bm{\Downarrow}
   \]%
 
   \begin{center}
-    If a type error appears \textbf{anywhere},\\
-    the program is meaningless \textbf{everywhere}.
+    If a type error appears \textcolor{RedOrange}{\textbf{anywhere}},\\
+    the program is meaningless \textcolor{Red}{\textbf{everywhere}}.
   \end{center}
 \end{frame}
 
 \begin{frame}{The goal}
-  We'd like to be able to \emph{formally} specify type checkers that \\[1em]
+  We'd like to be able to \emph{formally} specify type checkers that \\[0.5em]
 
   \pause
-  \begin{itemize}
-    \item describe where and what the error is \pause (\emph{localization})
+  \begin{enumerate}
+    \item describe where and what the errors are \pause (\emph{localization})
     
       \pause
-    \item carry on in spite of it \pause (\emph{recovery})
-  \end{itemize}
+    \item carry on in spite of them \pause (\emph{recovery})
+  \end{enumerate}
 
   \vspace{1em}
   \pause
-  \textbf{Guiding principle:} \\
-  \pause
-  These semantics should describe \emph{all syntactically well-formed programs}.
+  \begin{mainbox}[]{Guiding principle\only<8->{ (totality)}}
+    \pause
+    These typing semantics should describe \\
+    \emph{all syntactically well-formed programs}.
+  \end{mainbox}
 \end{frame}
 
 \begin{frame}{This paper is about\ldots}
   \begin{itemize}
-    \item<+-> the \textbf{marked lambda calculus}%
-      \uncover<+->{: a judgmental framework for \onderline<+->{total} type error localization and recovery}
+    \item<1-> the \textbf{marked lambda calculus}%
+      \uncover<2->{%
+        : a judgmental framework for \onderline<3->{total} \onderline<4->{bidirectional}
+        type error localization and recovery%
+      }
 
       \begin{itemize}
-        \item<+-> with extensions to richer typing features
-        \item<+-> and an Agda mechanization
+        \item<5-> with extensions to richer typing features
+        \item<6-> and an Agda mechanization
+        \item<7-> and its connections to structured editing
+        \item<8-> \emph{not} prescriptive \emph{wrt.} localization strategy
       \end{itemize}
 
-    \item<+-> a system for constraint-based \textbf{type hole inference}
+    \item<9-> a system for constraint-based \textbf{type hole inference}
   \end{itemize}
 \end{frame}

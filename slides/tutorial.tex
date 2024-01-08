@@ -8,13 +8,11 @@
 \begin{frame}[fragile]{Marked lambda calculus: a tutorial}
   \textbf{Start:} a small gradually typed lambda calculus
   %
-  \begin{figurebox}
-    \[\begin{array}{rcl}
-      \TMV  & \Coloneqq & \TUnknown \mid \TNum \mid \TBool \mid \TArrow{\TMV}{\TMV} \\
-      \EMV  & \Coloneqq & x \mid \ELam{x}{\TMV}{\EMV} \mid \EAp{\EMV}{\EMV}
-              \mid           \ENumMV \mid \ETrue \mid \EFalse
-    \end{array}\]
-  \end{figurebox}
+  \[\begin{array}{rcl}
+    \TMV  & \Coloneqq & \TUnknown \mid \TNum \mid \TBool \mid \TArrow{\TMV}{\TMV} \\
+    \EMV  & \Coloneqq & x \mid \ELam{x}{\TMV}{\EMV} \mid \EAp{\EMV}{\EMV}
+            \mid           \ENumMV \mid \ETrue \mid \EFalse
+  \end{array}\]
 
   \pause
 
@@ -31,9 +29,9 @@
   Synthesizing the type of a variable is standard:
   \[%
     \inferrule[SVar]{
-      \only<2->{\colorbox{highlight}{\inCtx{\ctx}{x}{\TMV}}}
+      \uncover<2->{\colorbox{highlight}{\inCtx{\ctx}{x}{\TMV}}}
     }{
-      \only<1->{\ctxSyn{\ctx}{x}{\TMV}}
+      \ctxSyn{\ctx}{x}{\TMV}
     }
   \]%
 
@@ -42,10 +40,10 @@
   But what if $\notInCtx{\ctx}{x}$?
   \hfill
   \pause
-  $\inCtx{\ctx}{x}{\TMV}$ is `fallible'!
+  `$\inCtx{\ctx}{x}{\TMV}$' is `fallible'!
 \end{frame}
 
-\begin{frame}[fragile]{Typing variable occurrences}
+\begin{frame}[fragile]
   How do we handle this failure case?
 
   \begin{lstlisting}[style=OCaml, escapechar=@]
@@ -65,56 +63,320 @@ let rec syn ctx e =
   \only<5>{Option 4: return \texttt{Result.Error} with some diagnostic information}
 \end{frame}
 
-\begin{frame}[fragile]{Typing variable occurrences}
+\begin{frame}[fragile]
   We've \emph{localized} the error: \pause ``this occurrence of $x$ is unbound!'' \\[1em]
 
   \pause
   How can we \emph{recover}? \\[1em]
 
   \pause
-  \textbf{Solution:} $\TUnknown$
+  \textbf{Solution.} $\TUnknown$ \pause \hspace{1em} $\leftarrow$ unknown type
 \end{frame}
 
-\begin{frame}[fragile]{From type checking to \textsc{marking}}
-  \textbf{Solution:} augment the type checking process with \emph{marking}! \\[1em]
+\begin{frame}[fragile]{From type checking to marking}
+  \textbf{Idea.} Augment the type checking process with \emph{marking}! \\[1em]
 
   \pause
   \begin{itemize}
     \item localize and report the error as a \emph{mark}
+      \pause
+      \begin{itemize}
+        \item compiler messages
+
+          \pause
+        \item editor decorations
+      \end{itemize}
 
       \pause
     \item use the unknown type to encapsulate missing type information
   \end{itemize}
 \end{frame}
 
-\begin{frame}[fragile]{The free variable mark}
-  Supplement the \emph{unmarked} surface syntax into a \emph{marked} one:
+\begin{frame}[fragile]{A two-layer calculus}
+  Supplement the \emph{unmarked} surface syntax
 
   \[\begin{array}{rcl}
     \TMV  & \Coloneqq & \TUnknown \mid \TNum \mid \TBool \mid \TArrow{\TMV}{\TMV} \\
     \EMV  & \Coloneqq & x \mid \ELam{x}{\TMV}{\EMV} \mid \EAp{\EMV}{\EMV}
-            \mid           \ENumMV \mid \ETrue \mid \EFalse \\ \pause
+            \mid           \ENumMV \mid \ETrue \mid \EFalse
+            \hphantom{\ \mid           \ECFree{x}} \\
+  \end{array}\]
+
+  \pause
+  into a \emph{marked} one that contains \emph{error marks}:
+  \[\begin{array}{rcl}
     \ECMV & \Coloneqq & x \mid \ECLam{x}{\TMV}{\ECMV} \mid \ECAp{\ECMV}{\ECMV}
             \mid           \ECNumMV \mid \ECTrue \mid \ECFalse
             \mid           \ECFree{x}
   \end{array}\]
 
   \pause
-  $\ECFree{x}$ is a \emph{marked expression} denoting a free occurrence of $x$
+  $\ECFree{x}$ is a \emph{marked term} denoting a free occurrence of $x$
+\end{frame}
+
+\begin{frame}[fragile]
+  Extend the original typing judgments
+  \[\begin{array}{rl}
+    \ctxSyn{\ctx}{\EMV}{\TMV} & \textsc{\small(synthesis)} \\
+    \ctxAna{\ctx}{\EMV}{\TMV} & \textsc{\small(analysis)}
+  \end{array}\]
+
+  \pause
+  into the bidirectional \textbf{marking judgments}:
+
+  \pause
+  \[\begin{array}{rl}
+    \ctxSynFixedInto{\ctx}{\EMV}{\ECMV}{\TMV} & \textsc{\small(marking synthesis)} \\ \pause
+    \ctxAnaFixedInto{\ctx}{\EMV}{\ECMV}{\TMV} & \textsc{\small(marking analysis)}
+  \end{array}\]
 \end{frame}
 
 \begin{frame}[fragile]{Marking free variables}
-  \begin{columns}
-    \begin{column}{0.5\textwidth}
-      \only<1>{
-      \[\begin{array}{rl}
-        \ctxSyn{\ctx}{\EMV}{\TMV} & \textsc{\small(synthesis)} \\
-        \ctxAna{\ctx}{\EMV}{\TMV} & \textsc{\small(analysis)}
-      \end{array}\]
+  One typing rule for variables 
+  \[%
+    \inferrule[SVar]{
+      \inCtx{\ctx}{x}{\TMV}
+    }{
+      \ctxSyn{\ctx}{x}{\TMV}
+    }
+  \]%
+
+  becomes two synthetic marking rules: 
+  \begin{mathpar}
+    \uncover<2->{
+    \inferrule[MKSVar]{
+      \inCtx{\ctx}{x}{\TMV}
+    }{
+      \ctxSynFixedInto{\ctx}{x}{x}{\TMV}
+    }
+    }
+
+    \uncover<3->{
+    \inferrule[MKSFree]{
+      \notInCtx{\ctx}{x}
+    }{
+      \uncover<3->{\ctxSynFixedInto{\ctx}{x}{\uncover<5->{\ECFree{x}}}{\uncover<4->{\TUnknown}}}
+    }
+    }
+  \end{mathpar}
+\end{frame}
+
+\begin{frame}[fragile]{A total marking}
+  \begin{mainbox}[]{Guiding principle (totality)}
+    These typing semantics should describe \\
+    \emph{all syntactically well-formed programs}.
+  \end{mainbox}
+  %
+  \pause
+  \begin{center}
+    $\bm{\Downarrow}$
+  \end{center}
+
+  \begin{mainbox}[]{Theorem 2.1. Marking Totality}
+    \pause
+    For all $\ctx$ and $\EMV$,
+      there exist $\ECMV$ and $\TMV$
+        such that $\ctxSynFixedInto{\ctx}{\EMV}{\ECMV}{\TMV}$. \\
+    \pause
+    For all $\ctx$, $\EMV$, and $\TMV$,
+      there exists $\ECMV$
+        such that $\ctxAnaFixedInto{\ctx}{\EMV}{\ECMV}{\TMV}$.
+  \end{mainbox}
+\end{frame}
+
+\begin{frame}[fragile]{Marking function application}
+  \textbf{Example.} The synthetic typing rule for function application:
+  %
+  \begin{mathpar}
+    \inferrule[SAp]{
+      \ctxSyn{\ctx}{\EMV_1}{\TMV} \\
+      \matchedArrow{\TMV}{\TMV_1}{\TMV_2} \\
+      \ctxAna{\ctx}{\EMV_2}{\TMV_1}
+    }{
+      \ctxSyn{\ctx}{\EAp{\EMV_1}{\EMV_2}}{\TMV_2}
+    } \\
+
+    \inferrule[TMAUnknown]{ }{
+      \matchedArrow{\TUnknown}{\TUnknown}{\TUnknown}
+    }
+
+    \inferrule[TMAArr]{ }{
+      \matchedArrow{\TArrow{\TMV_1}{\TMV_2}}{\TMV_1}{\TMV_2}
+    }
+  \end{mathpar}
+\end{frame}
+
+\begin{frame}[fragile]
+  \ldots\ becomes the synthetic marking rule:
+  \[%  
+    \uncover<2->{
+      \inferrule[MKSAp]{
+      \uncover<3->{\ctxSynFixedInto{\ctx}{\EMV_1}{\ECMV_1}{\TMV}} \\
+      \uncover<4->{\matchedArrow{\TMV}{\TMV_1}{\TMV_2}} \\
+      \uncover<5->{\ctxAnaFixedInto{\ctx}{\EMV_2}{\ECMV_2}{\TMV_1}} \\
+    }{
+      \ctxSynFixedInto{\ctx}{\EAp{\EMV_1}{\EMV_2}}{\uncover<7->{\ECAp{\ECMV_1}{\ECMV_2}}}{\uncover<6->{\TMV_2}}
+    }
+    }
+  \]%
+
+  \uncover<8->{
+    But what if $\TMV$ doesn't match an arrow type, $\notMatchedArrow{\TMV}$, \\
+    \ie, $\EMV_1$ can't be applied as a function, \eg, in $\ELam{n}{\TNum}{\EAp{n}{\ETrue}}$?
+  }
+\end{frame}
+
+\begin{frame}[fragile]
+  Introduce the mark $\ECApSynNonMatchedArrow{\ECMV_1}{\ECMV_2}$ for this error:
+  \[%
+    \ECMV \Coloneqq \cdots \mid \ECFree{x} \mid \only<1->{\ECApSynNonMatchedArrow{\ECMV}{\ECMV}}
+  \]%
+  \uncover<2->{
+  \begin{mathpar}
+    \inferrule[MKSAp1]{
+      \ctxSynFixedInto{\ctx}{\EMV_1}{\ECMV_1}{\TMV} \\
+      \matchedArrow{\TMV}{\TMV_1}{\TMV_2} \\
+      \ctxAnaFixedInto{\ctx}{\EMV_2}{\ECMV_2}{\TMV_1} \\
+    }{
+      \ctxSynFixedInto{\ctx}{\EAp{\EMV_1}{\EMV_2}}{\ECAp{\ECMV_1}{\ECMV_2}}{\TMV_2}
+    }
+
+    \uncover<3->{
+    \inferrule[MKSAp2]{
+      \ctxSynFixedInto{\ctx}{\EMV_1}{\ECMV_1}{\TMV} \\
+      \notMatchedArrow{\TMV} \\
+      \uncover<4->{\ctxAnaFixedInto{\ctx}{\EMV_2}{\ECMV_2}{\TUnknown}}
+    }{
+      \ctxSynFixedInto{\ctx}{\EAp{\EMV_1}{\EMV_2}}{\uncover<6->{\ECApSynNonMatchedArrow{\ECMV_1}{\ECMV_2}}}{\uncover<5->{\TUnknown}}
+    }
+    }
+  \end{mathpar}
+  }
+\end{frame}
+
+\begin{frame}[fragile]{Marking local inconsistencies}
+  The standard subsumption principle:
+  \[%
+    \inferrule[ASubsume]{
+      \ctxSynType{\ctx}{\EMV}{\TMV'} \\
+      \consistent{\TMV}{\TMV'}
+    }{
+      \ctxAnaType{\ctx}{\EMV}{\TMV}
+    }
+  \]%
+
+  \pause
+  becomes the analytic marking rule:
+  \[%
+    \inferrule[MKASubsume]{
+      \ctxSynFixedInto{\ctx}{\EMV}{\ECMV}{\TMV'} \\
+      \consistent{\TMV}{\TMV'}
+    }{
+      \ctxAnaFixedInto{\ctx}{\EMV}{\ECMV}{\TMV}
+    }
+  \]%
+\end{frame}
+
+\begin{frame}
+  What if $\inconsistent{\TMV}{\TMV'}$, \eg, in $\ELam{f}{\TArrow{\TNum}{\TNum}}{\EAp{f}{\goodcolor{Red}{\ETrue}}}$?
+
+  \pause
+  \[%
+    \ECMV \Coloneqq \cdots \mid \ECFree{x} \mid \ECApSynNonMatchedArrow{\ECMV}{\ECMV} \mid \ECInconType{\ECMV}
+  \]%
+
+  \pause
+  \[%
+    \inferrule[MKAInconsistentTypes]{
+      \ctxSynFixedInto{\ctx}{\EMV}{\ECMV}{\TMV'} \\
+      \inconsistent{\TMV}{\TMV'}
+    }{
+      \ctxAnaFixedInto{\ctx}{\EMV}{\ECInconType{\ECMV}}{\TMV}
+    }
+  \]%
+\end{frame}
+
+\begin{frame}{The marked lambda calculus, altogether}
+  \begin{center}
+    \begin{tikzpicture}[box/.style={align=left, fill=white}]
+      \Alt<4->{
+        \node[box] (unmarked) {
+          \begin{minipage}[t][1.5cm]{4cm}
+            \emph{unmarked language} \\
+            $\ctxSynTypeU{\ctx}{\EMV}{\TMV}$ \\
+            $\ctxAnaTypeU{\ctx}{\EMV}{\TMV}$
+          \end{minipage}
+        };
+      }{
+        \node[box] (unmarked) {
+          \begin{minipage}[t][1.5cm]{4cm}
+            \emph{original language} \\
+            $\ctxSyn{\ctx}{\EMV}{\TMV}$ \\
+            $\ctxAna{\ctx}{\EMV}{\TMV}$
+          \end{minipage}
+        };
       }
-    \end{column}
-    \begin{column}{0.5\textwidth}
-      
-    \end{column}
-  \end{columns}
+
+      \node[box, visible on=<2->] (marking) [right=2.5cm of unmarked] {
+        \begin{minipage}[t][1.5cm]{4cm}
+          \emph{marking} \\
+          $\ctxSynFixedInto{\ctx}{\EMV}{\ECMV}{\TMV}$ \\
+          $\ctxAnaFixedInto{\ctx}{\EMV}{\ECMV}{\TMV}$
+        \end{minipage}
+      };
+
+      \node[box, visible on=<3->] (marked) [below=2.5cm of marking] {
+        \begin{minipage}[t][1.5cm]{4cm}
+          \emph{marked language} \\
+          $\ctxSynTypeM{\ctx}{\ECMV}{\TMV}$ \\
+          $\ctxAnaTypeM{\ctx}{\ECMV}{\TMV}$
+        \end{minipage}
+      };
+
+      \node[box, visible on=<5->] (erasure) [below=2.5cm of unmarked] {
+        \begin{minipage}[t][1.5cm]{4cm}
+          \emph{mark erasure} \\
+          $\erase{\ECMV}$
+        \end{minipage}
+      };
+
+      \draw[-stealth, shorten >=5pt, visible on=<3->] (unmarked) to[bend left=20] (marked);
+      \draw[-stealth, shorten <=5pt, visible on=<5->] (marked)   to[bend left=20] (unmarked);
+    \end{tikzpicture}
+  \end{center}
+\end{frame}
+
+\begin{frame}[fragile]{}
+  \begin{mainbox}[]{Lemma. Marking Well-Typed Terms}
+    If $\ctxSynTypeU{\ctx}{\EMV}{\TMV}$,
+      then there exists $\ECMV$
+        such that $\ctxSynFixedInto{\ctx}{\EMV}{\ECMV}{\TMV}$. \\
+    If $\ctxAnaTypeU{\ctx}{\EMV}{\TMV}$,
+      then there exists $\ECMV$
+        such that $\ctxAnaFixedInto{\ctx}{\EMV}{\ECMV}{\TMV}$.
+  \end{mainbox}
+
+  \pause
+  \begin{mainbox}[]{Theorem 2.2. Marking Well-Formedness}
+    If $\ctxSynFixedInto{\ctx}{\EMV}{\ECMV}{\TMV}$,
+      then $\ctxSynTypeM{\ctx}{\ECMV}{\TMV}$
+        and $\erasesTo{\ECMV}{\EMV}$. \\
+    If $\ctxAnaFixedInto{\ctx}{\EMV}{\ECMV}{\TMV}$,
+      then $\ctxAnaTypeM{\ctx}{\ECMV}{\TMV}$
+        and $\erasesTo{\ECMV}{\EMV}$.
+  \end{mainbox}
+\end{frame}
+
+\begin{frame}[fragile]{The recipe}
+  \begin{enumerate}
+    \item Begin with a bidirectional gradually typed language
+
+      \pause
+    \item Derive marking rules from each typing rule
+      %
+      \begin{itemize}
+        \item Consider the ``success'' case
+        \item Consider the ``failure'' cases, introducing error marks
+      \end{itemize}
+  \end{enumerate}
 \end{frame}

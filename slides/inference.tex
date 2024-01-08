@@ -1,0 +1,32 @@
+\begin{frame}{Marking \underline{global} inconsistencies}
+  Consider this program:
+  \[%
+    \ELam{f}{\TUnknown}{\EAp{f}{(\EPlus{f}{1})}}
+  \]%
+
+  \pause
+  $f : \TUnknown$, so the bidirectional system operates gradually, \pause
+  but $f$ is 
+  %
+  \pause
+  \begin{enumerate}
+    \item applied as a function \pause (a function?)
+      \pause
+    \item an operand of $+$ \pause (a number?)
+  \end{enumerate}
+
+  \pause
+  \vspace{1em}
+  \emph{Constraint-based type checking would have caught this!}
+\end{frame}
+
+\begin{frame}{Layers on layers}
+  Get the best of both worlds by layering \textbf{constraint-based inference} 
+  atop the marked lambda calculus
+
+  \vspace{1em}
+  \pause
+  \begin{itemize}
+    \item 
+  \end{itemize}
+\end{frame}
