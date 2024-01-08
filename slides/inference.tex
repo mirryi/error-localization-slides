@@ -5,28 +5,74 @@
   \]%
 
   \pause
-  $f : \TUnknown$, so the bidirectional system operates gradually, \pause
+  $\assignType{f}{\TUnknown}$, so the bidirectional system operates gradually, \pause
   but $f$ is 
   %
   \pause
   \begin{enumerate}
     \item applied as a function \pause (a function?)
       \pause
-    \item an operand of $+$ \pause (a number?)
+    \item an operand of $\ECOpPlus$ \pause (a number?)
   \end{enumerate}
 
   \pause
   \vspace{1em}
-  \emph{Constraint-based type checking would have caught this!}
+  \emph{Global, constraint-based type checking would have caught this!}
 \end{frame}
 
-\begin{frame}{Layers on layers}
+\begin{frame}{Layers upon layers}
   Get the best of both worlds by layering \textbf{constraint-based inference} 
   atop the marked lambda calculus
 
   \vspace{1em}
   \pause
   \begin{itemize}
-    \item 
+    \item The marked lambda calculus localizes and recovers predictably from \emph{local inconsistencies}
+      \pause
+    \item \textbf{Type hole inference} solves and marks \emph{global inconsistencies}
   \end{itemize}
+\end{frame}
+
+\begin{frame}{Type hole inference}
+  \begin{itemize}
+    \item Gather constraints with provenances that link occurrences of unknown types to originating
+      error marks
+
+    \item Solve the constraints by a standard unification algorithm \cite{huet1976}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \begin{itemize}
+    \item Augment the \emph{marked language} to track provenances for unknown types
+      %
+      \begin{itemize}
+        \item Provenances $\Provp$ that link each type hole to the originating error mark
+          (denoted by unique id $u$)
+      \end{itemize}
+  \end{itemize}
+
+  \[\begin{array}{rcl}
+    \Provp & \Coloneqq & u \mid exp(u) \mid \rightarrow_L(\Provp) \mid \rightarrow_R(\Provp) \mid \times_L(\Provp) \mid \times_R(\Provp)\\
+    \TMV   & \Coloneqq & \cdots \mid \TUnknown^{p}\\
+    \ECMV  & \Coloneqq & \cdots \mid \ECFreeId{x}{u} \mid \ECApSynNonMatchedArrowId{\ECMV}{u} \mid \ECInconTypeId{\ECMV}{u}
+  \end{array}\]
+\end{frame}
+
+\begin{frame}
+  {\small
+  \[%
+    \judgment{
+      \synConstraint{\ctx}{\ECMV_1}{\TMV}{C_1} \\
+      \notMatchedArrow{\TMV} \\
+      \anaConstraint{\ctx}{\ECMV_2}{\TUnknown^{\rightarrow_{L}(exp(u))}}{C_2}
+    }{
+      \synConstraint{\ctx}{\ECApSynNonMatchedArrowId{\ECMV_1}{u}{\ECMV_2}}{\TUnknown^{\rightarrow_{R}(exp(u))}}{C_1 \cup C_2 \cup \{ \TUnknown^{exp(u)} \approx \tarr{\TUnknown^{\rightarrow_L(exp(u))}}{\TUnknown^{\rightarrow_R(exp(u))}}\}}
+    }{MSAp2-C}
+  \]%
+  }
+\end{frame}
+
+\begin{frame}{Neutral by construction}
+
 \end{frame}

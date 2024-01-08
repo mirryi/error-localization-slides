@@ -254,48 +254,6 @@ let rec syn ctx e =
   }
 \end{frame}
 
-\begin{frame}[fragile]{Marking local inconsistencies}
-  The standard subsumption principle:
-  \[%
-    \inferrule[ASubsume]{
-      \ctxSynType{\ctx}{\EMV}{\TMV'} \\
-      \consistent{\TMV}{\TMV'}
-    }{
-      \ctxAnaType{\ctx}{\EMV}{\TMV}
-    }
-  \]%
-
-  \pause
-  becomes the analytic marking rule:
-  \[%
-    \inferrule[MKASubsume]{
-      \ctxSynFixedInto{\ctx}{\EMV}{\ECMV}{\TMV'} \\
-      \consistent{\TMV}{\TMV'}
-    }{
-      \ctxAnaFixedInto{\ctx}{\EMV}{\ECMV}{\TMV}
-    }
-  \]%
-\end{frame}
-
-\begin{frame}
-  What if $\inconsistent{\TMV}{\TMV'}$, \eg, in $\ELam{f}{\TArrow{\TNum}{\TNum}}{\EAp{f}{\goodcolor{Red}{\ETrue}}}$?
-
-  \pause
-  \[%
-    \ECMV \Coloneqq \cdots \mid \ECFree{x} \mid \ECApSynNonMatchedArrow{\ECMV}{\ECMV} \mid \ECInconType{\ECMV}
-  \]%
-
-  \pause
-  \[%
-    \inferrule[MKAInconsistentTypes]{
-      \ctxSynFixedInto{\ctx}{\EMV}{\ECMV}{\TMV'} \\
-      \inconsistent{\TMV}{\TMV'}
-    }{
-      \ctxAnaFixedInto{\ctx}{\EMV}{\ECInconType{\ECMV}}{\TMV}
-    }
-  \]%
-\end{frame}
-
 \begin{frame}{The marked lambda calculus, altogether}
   \begin{center}
     \begin{tikzpicture}[box/.style={align=left, fill=white}]
@@ -368,7 +326,7 @@ let rec syn ctx e =
 \end{frame}
 
 \begin{frame}[fragile]{The recipe}
-  \begin{enumerate}
+  \begin{itemize}
     \item Begin with a bidirectional gradually typed language
 
       \pause
@@ -378,5 +336,65 @@ let rec syn ctx e =
         \item Consider the ``success'' case
         \item Consider the ``failure'' cases, introducing error marks
       \end{itemize}
-  \end{enumerate}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Marking local inconsistencies}
+  The standard subsumption principle:
+  \[%
+    \inferrule[UASubsume]{
+      \ctxSynTypeU{\ctx}{\EMV}{\TMV'} \\
+      \consistent{\TMV}{\TMV'}
+    }{
+      \ctxAnaTypeU{\ctx}{\EMV}{\TMV}
+    }
+  \]%
+
+  \pause
+  becomes the analytic marking and (marked) typing rules:
+  %
+  \begin{mathpar}
+    \inferrule[MKASubsume]{
+      \ctxSynFixedInto{\ctx}{\EMV}{\ECMV}{\TMV'} \\
+      \consistent{\TMV}{\TMV'}
+    }{
+      \ctxAnaFixedInto{\ctx}{\EMV}{\ECMV}{\TMV}
+    }
+
+    \inferrule[MASubsume]{
+      \ctxSynTypeM{\ctx}{\ECMV}{\TMV'} \\
+      \consistent{\TMV}{\TMV'}
+    }{
+      \ctxAnaTypeM{\ctx}{\ECMV}{\TMV}
+    }
+  \end{mathpar}
+\end{frame}
+
+\begin{frame}
+  What if $\inconsistent{\TMV}{\TMV'}$, \eg, in $\ELam{f}{\TArrow{\TNum}{\TNum}}{\EAp{f}{\goodcolor{Red}{\ETrue}}}$?
+
+  \pause
+  \[%
+    \ECMV \Coloneqq \cdots \mid \ECFree{x} \mid \ECApSynNonMatchedArrow{\ECMV}{\ECMV} \mid \colorbox{highlight}{\ECInconType{\ECMV}}
+  \]%
+
+  \pause
+  \begin{mathpar}
+    \inferrule[MKAInconsistentTypes]{
+      \ctxSynFixedInto{\ctx}{\EMV}{\ECMV}{\TMV'} \\
+      \inconsistent{\TMV}{\TMV'}
+    }{
+      \ctxAnaFixedInto{\ctx}{\EMV}{\ECInconType{\ECMV}}{\TMV}
+    }
+
+    \inferrule[MAInconsistentTypes]{
+      \ctxSynTypeM{\ctx}{\ECMV}{\TMV'} \\
+      \inconsistent{\TMV}{\TMV'}
+    }{
+      \ctxAnaTypeM{\ctx}{\ECInconType{\ECMV}}{\TMV}
+    }
+  \end{mathpar}
+
+  \vspace{1em}
+  {\small (Complete rules for a small language with booleans, products, lets in the paper)}
 \end{frame}
