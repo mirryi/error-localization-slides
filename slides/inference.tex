@@ -28,6 +28,7 @@
   \pause
   \begin{itemize}
     \item The marked lambda calculus localizes and recovers predictably from \emph{local inconsistencies}
+
       \pause
     \item \textbf{Type hole inference} solves and marks \emph{global inconsistencies}
   \end{itemize}
@@ -35,42 +36,157 @@
 
 \begin{frame}{Type hole inference}
   \begin{itemize}
-    \item Gather constraints with provenances that link occurrences of unknown types to originating
-      error marks
+    \item Occurrences of $\TUnknown$ arise from
+      \pause (1) \emph{type holes}, \eg, in $\ELam{x}{\TUnknown}{\cdots}$
+      \pause or (2) error marks
 
-    \item Solve the constraints by a standard unification algorithm \cite{huet1976}
+      \pause
+    \item Gather constraints from the bidirectional systems\pause,
+      treating occurrences of $\TUnknown$ as unification variables
+      {\footnotesize\parencite{siek2008}}
+
+      \pause
+    \item Solve them via a standard unification algorithm {\footnotesize\parencite{huet1976}} \\
+      \pause whilst \emph{accumulating the potential types for each variable} \\
+      \pause and \emph{continuing on in the face of failures}
   \end{itemize}
 \end{frame}
 
-\begin{frame}
+\newcommand{\Id}[1]{\ensuremath{\goodcolor{hole}{#1}}}
+\newcommand{\IdU}{\ensuremath{\Id{u}}}
+\newcommand{\ProvU}{\ensuremath{\IdU}}
+\newcommand{\ProvExp}[1]{\ensuremath{exp\goodcolor{\colorOkSideJudge}{(}#1\goodcolor{\colorOkSideJudge}{)}}}
+\newcommand{\ProvIn}[1]{\ensuremath{\to_L\goodcolor{\colorOkSideJudge}{(}#1\goodcolor{\colorOkSideJudge}{)}}}
+\newcommand{\ProvOut}[1]{\ensuremath{\to_R\goodcolor{\colorOkSideJudge}{(}#1\goodcolor{\colorOkSideJudge}{)}}}
+
+\begin{frame}{Provenances for types}
+  Add type provenances $\Provp$ to the \emph{marked language}:
+
+  \vspace{1em}
+  \pause
   \begin{itemize}
-    \item Augment the \emph{marked language} to track provenances for unknown types
-      %
-      \begin{itemize}
-        \item Provenances $\Provp$ that link each type hole to the originating error mark
-          (denoted by unique id $u$)
-      \end{itemize}
+    \item Link occurrences of $\TUnknown$ to the originating type hole or error mark
+      (denoted by unique id $\IdU$)
+
+    \item Distinguish between different $\TUnknown$ based on locus
   \end{itemize}
 
+  \pause
   \[\begin{array}{rcl}
-    \Provp & \Coloneqq & u \mid exp(u) \mid \rightarrow_L(\Provp) \mid \rightarrow_R(\Provp) \mid \times_L(\Provp) \mid \times_R(\Provp)\\
+    \Provp & \Coloneqq & \ProvU \mid \ProvExp{\ProvU} \mid \ProvIn{\Provp} \mid \ProvOut{\Provp} \\
+    \pause
     \TMV   & \Coloneqq & \cdots \mid \TUnknown^{p}\\
-    \ECMV  & \Coloneqq & \cdots \mid \ECFreeId{x}{u} \mid \ECApSynNonMatchedArrowId{\ECMV}{u} \mid \ECInconTypeId{\ECMV}{u}
+    \pause
+    \ECMV  & \Coloneqq & \cdots \mid \ECFreeId{x}{\IdU} \mid \ECApSynNonMatchedArrowId{\ECMV}{\IdU} \mid \ECInconTypeId{\ECMV}{\IdU}
   \end{array}\]
 \end{frame}
 
-\begin{frame}
-  {\small
+\begin{frame}{Generating constraints bidirectionally}
+  Augment the type system (of the marked language) to generate sets $C$ of constraints
+  $\constrain{\TMV_1}{\TMV_2}$\pause, which force $\TMV_1$ and $\TMV_2$ to be consistent:
+  \pause
   \[%
-    \judgment{
-      \synConstraint{\ctx}{\ECMV_1}{\TMV}{C_1} \\
-      \notMatchedArrow{\TMV} \\
-      \anaConstraint{\ctx}{\ECMV_2}{\TUnknown^{\rightarrow_{L}(exp(u))}}{C_2}
-    }{
-      \synConstraint{\ctx}{\ECApSynNonMatchedArrowId{\ECMV_1}{u}{\ECMV_2}}{\TUnknown^{\rightarrow_{R}(exp(u))}}{C_1 \cup C_2 \cup \{ \TUnknown^{exp(u)} \approx \tarr{\TUnknown^{\rightarrow_L(exp(u))}}{\TUnknown^{\rightarrow_R(exp(u))}}\}}
-    }{MSAp2-C}
+    \synConstraint{\ctx}{\ECMV}{\TMV}{C} \qquad \anaConstraint{\ctx}{\ECMV}{\TMV}{C}
   \]%
+
+  \pause
+  \begin{mathpar}
+    \judgment{
+      \synConstraint{\ctx}{\ECMV}{\TMV'}{C} \\
+      \consistent{\TMV}{\TMV'}
+    }{
+      \anaConstraint{\ctx}{\ECMV}{\TMV}{C \cup \{ \constrain{\TMV}{\TMV'} \}}
+    }{MASubsume-C}
+
+    \pause
+    \judgment{
+        \synConstraint{\ctx}{\ECMV}{\TMV'}{C} \\
+        \inconsistent{\TMV}{\TMV'}
+    }{
+      \anaConstraint{\ctx}{\ECInconTypeId{\ECMV}{u}}{\TMV}{C \cup \{ \constrain{\TMV}{\TUnknown^{\ProvExp{\IdU}}} \}}
+    }{MAInconsistentTypes-C}
+  \end{mathpar}
+\end{frame}
+
+\begin{frame}{Unification with inconsistencies}
+  For each occurrence of $\TUnknown$, accumulate the $\mathsf{PotentialTypeSet}$\pause: \\
+  \emph{all} potential type fillings as inferred from the constraints
+
+  \[\begin{array}{rrcl}
+    \mathsf{PotentialTypeSet} & s & \Coloneqq & \{ t^{*} \} \\
+    \mathsf{PotentialType}    & t & \Coloneqq & \TUnknown^\Provp \mid \TNum \mid \TBool \mid \TArrow{s}{s}
+  \end{array}\]
+
+  \vspace{1em}
+  \pause
+  To unify $\constrain{\TMV_1}{\TMV_2}$, recursively merge $\mathsf{PotentialTypeSet(\TMV_1)}$
+  and $\mathsf{PotentialTypeSet(\TMV_2)}$.
+\end{frame}
+
+\newcommand{\PTS}{\operatorname{\mathsf{PotentialTypeSet}}}
+\newcommand{\cursor}{\ensuremath{\goodcolor{\colorOkSideJudge}{\bm{\wedge}}}}
+
+\begin{frame}
+  \[%
+    \ELam{f}{\TUnknown^{\Id{1}}}{\EAp{f}}{(\EPlus{f}{1})}
+  \]%
+
+  \uncover<2->{
+    yields the (inconsistent) constraints
+    \[%
+      \{ \onderset<6>{\cursor}{\constrain{\TUnknown^{\Id{1}}}{\TArrow{\TUnknown^{\ProvIn{\Id{1}}}}{\TUnknown^{\ProvOut{\Id{1}}}}}}
+       \only<3->{, \onderset<7>{\cursor}{\constrain{\TNum}{\TUnknown^{\Id{1}}}}}
+       \only<4->{, \onderset<8>{\cursor}{\constrain{\TNum}{\TUnknown^{\ProvIn{\Id{1}}}}}} \}
+    \]%
   }
+  
+  \vspace{-1em}
+  \uncover<5->{
+    and solving gives
+    \[%
+      \PTS(\TUnknown^{\Id{1}})
+        =
+      \Alt<6->{
+        \Alt<7->{
+          \Alt<8->{
+            \{ \TArrow{\{ \onderline<8>{\TNum} \}}{\{ \TUnknown^{\ProvOut{\Id{1}}} \}},
+               \TNum \}
+          }{
+            \{ \TArrow{\{ \TUnknown^{\ProvIn{\Id{1}}} \}}{\{ \TUnknown^{\ProvOut{\Id{1}}} \}},
+             \underline{\TNum} \}
+          }
+        }{
+          \{ \underline{\TArrow{\{ \TUnknown^{\ProvIn{\Id{1}}} \}}{\{ \TUnknown^{\ProvOut{\Id{1}}} \}}} \}
+        }
+      }{
+        \{ \}
+      }
+    \]%
+  }
+\end{frame}
+
+\begin{frame}
+  \[%
+    \ELam{f}{\TUnknown^{\Id{1}}}{\EAp{f}}{(\EPlus{f}{1})}
+  \]%
+  \[%
+    \PTS(\TUnknown^{\Id{1}})
+      = \{ \TArrow{\{ \TNum \}}{\{ \TUnknown^{\ProvOut{\Id{1}}} \}},
+         \TNum \}
+  \]%
+
+  \vspace{1em}
+  We know:
+
+  \vspace{1em}
+  \pause
+  \begin{itemize}
+    \item Two potential fillings of $\TUnknown^{\Id{1}}$ are $\TArrow{\TNum}{\TUnknown}$ and $\TNum$\pause, \\
+      which is more than one!
+
+      \pause
+    \item $\TUnknown^{\Id{1}}$ is unsolved; inconsistent constraints!
+  \end{itemize}
 \end{frame}
 
 \begin{frame}{Neutral by construction}

@@ -29,7 +29,7 @@
 \usepackage{pgfplots}
 \pgfplotsset{compat=1.18}
 
-\usepackage[style=trad-abbrv, sortcites, backend=biber]{biblatex}
+\usepackage[style=authoryear, sortcites, backend=biber]{biblatex}
 
 \usepackage{tikz}
 \usetikzlibrary{arrows, arrows.meta, shapes, calc, positioning, backgrounds, hobby}
@@ -44,6 +44,7 @@
 
 % \setbeamercovered{transparent}
 \newcommand<>{\onderline}[1]{\alt#2{\underline{#1}}{#1}}
+\newcommand<>{\onderset}[2]{\alt#3{\underset{#1}{#2}}{#2}}
 
 \tikzset{
   invisible/.style={opacity=0,text opacity=0},
@@ -196,8 +197,7 @@ continuation}\fi}}%
 \input{formalism/symbols/polymorphism}
 \input{formalism/symbols/constraint}
 
-\bibliographystyle{ACM-Reference-Format}
-\bibliography{references.bib}
+\addbibresource{references.bib}
 
 \title{Total Type Error Localization and Recovery with Holes}
 \author{\underline{Eric Zhao}, Raef Maroof, Anand Dukkipati, Andrew Blinn, Zhiyi Pan, Cyrus Omar}
