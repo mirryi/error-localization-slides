@@ -1,22 +1,3 @@
-% \begin{frame}{}
-  % \begin{columns}
-    % \begin{column}{0.5\linewidth}
-      % \begin{itemize}
-        % \item 
-      % \end{itemize}
-    % \end{column}
-    % \begin{column}{0.5\linewidth}
-      % \begin{itemize}
-        % \item 
-      % \end{itemize}
-    % \end{column}
-  % \end{columns}
-% \end{frame}
-
-\begin{frame}[fragile]{Familiar sights}
-  A
-\end{frame}
-
 \begin{frame}{Nowadays\ldots}
   \begin{itemize}
     \item We program with high-level abstractions \\ \pause
@@ -28,44 +9,97 @@
 
       \pause
     \item We write a lot of ill-formed code \\ \pause
-      so services must be error-resilient!
+      so services must be \emph{error-resilient}!
   \end{itemize}
 \end{frame}
 
-% \begin{frame}[fragile]{Localization is varied}
-  % \[%
-    % \ELet{x}{\EIf{\ETrue}{\ENum{5}}{}}{\cdots}
-  % \]%
+\begin{frame}{Error localization and recovery}
+  As programmers, we want tools that can
 
-    % \begin{semiverbatim}\small
-% 1 | let x = if true then 5 else false
-                                % \textcolor{red}{^^^^^}
-% \textcolor{red}{\textbf{Error}}: This expression has type bool but an expression
-         % was expected of type int
-% \pause
-% Main.hs:1:18: \textbf{\textcolor{red}{error}:} \textbf{[\textcolor{red}{GHC-39999}]}
-    % • No instance for ‘Num Bool’ arising from the literal ‘5’
-    % • In the expression: 5
-      % In the expression: if True then 5 else False
-      % In an equation for ‘x’: x = if True then 5 else False
-  % |
-% 1 | x = if True then \textcolor{red}{\textbf{5}} else False
-  % |                  \textcolor{red}{\textbf{^}}
-    % \end{semiverbatim}
+  \pause
+  \vspace{1em}
+  \begin{itemize}
+    \item describe \emph{what} and \emph{where} the errors are \pause (\emph{localization})
 
-% main.cpp: In function ‘auto f()’:
-% main.cpp:5:12: error: inconsistent deduction for auto return type: ‘int’ and then ‘bool’
-%     5 |     return false;
-%       |            ^~~~~
+      \pause
+    \item and, even when an error is encountered,
+      continue on and find other errors \pause (\emph{recovery})
+  \end{itemize}
 
-% error[E0308]: `if` and `else` have incompatible types
- % --> src/main.rs:2:34
-  % |
-% 2 |     let x = if true { 5 } else { false };
-  % |                       -          ^^^^^ expected integer, found `bool`
-  % |                       |
-  % |                       expected because of this
-% \end{frame}
+  \vspace{1em}
+  \pause
+  \textbf{Our focus:} \emph{type} error localization and recovery!
+\end{frame}
+
+\begin{frame}[fragile, t]{Observations in practice}
+  \begin{center}
+    $%
+      \ELet{f}{\ELam{b}{\TBool}{\cdots}}{\pause
+        \ELet{x}
+          {\EIf{\ETrue}
+               {\onderset<8>{\goodcolor{Emerald}{\bm{\wedge}}}{\ENum{5}}}
+               {\onderset<4-5,6,7,8>{\goodcolor{Red}{\bm{\wedge}}}{\EFalse}}}
+          {\pause\EAp{f}{\onderset<5,6>{\goodcolor{Red}{\wedge}}{x}}}
+      }
+    $%
+  \end{center}
+  \vspace{-18pt}
+  \begin{semiverbatim}\small\only<4-5>{
+1 | let x = if true then 5 else false in f x
+                                \textcolor{red}{^^^^^}
+\textcolor{red}{\textbf{Error}}: This expression has type bool but an expression
+         was expected of type int
+     \uncover<5>{
+1 | let x = if true then 5 else false in f x
+                                           \textcolor{red}{^}
+\textcolor{red}{\textbf{Error}}: This expression has type int but an expression
+         was expected of type bool}}\only<6>{
+Main.hs:4:26: \textbf{\textcolor{red}{error}:} \textbf{[\textcolor{red}{GHC-39999}]}
+    • Couldn't match expected type ‘Int’ with actual type ‘Bool’
+  |
+4 | _ = let x = if True then (5::Int) else \textcolor{red}{\textbf{False}} in f x
+  |                                        \textcolor{red}{\textbf{^^^^^}}
+    • Couldn't match expected type ‘Bool’ with actual type ‘Int’
+  |
+4 | _ = let x = if True then (5::Int) else False in f \textcolor{red}{\textbf{x}}
+  |                                                   \textcolor{red}{\textbf{^}}}\only<7>{
+main.cpp:1:50: \textcolor{red}{\textbf{error:}} inconsistent deduction for auto return type:
+                      ‘int’ and then ‘bool’
+    1 | auto x() { if (true) { return 5; } else { return \textcolor{red}{\textbf{false}}; } }
+      |                                              \textcolor{red}{\textbf{^~~~~}}
+    2 | auto y = f(x())}\only<8>{
+\textbf{\textcolor{red}{error[E0308]}: `if` and `else` have incompatible types}
+ --> src/main.rs:2:30
+  |
+6 | let x = if true { 5 } else { false }; f(x);
+  |                  \textcolor{Emerald}{\textbf{-}}        \textcolor{red}{\textbf{^^^^^ expected integer, found `bool`}}
+  |                  \textcolor{Emerald}{\textbf{|}}
+  |                  \textcolor{Emerald}{\textbf{expected because of this}}}
+  \end{semiverbatim}
+\end{frame}
+
+\begin{frame}
+  Today's tooling is error-resilient to a certain degree\pause, but
+
+  \vspace{1em}
+  \pause
+  \begin{itemize}
+    \item localization can be varied\pause, often guessing about \emph{user intent}
+
+      \pause
+    \item recovery necessitates reasoning without complete knowledge about types
+
+      \pause
+    \item decisions can influence other downstream decisions
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{\ldots\ in theory}
+  \begin{center}
+    \Large
+    $\Gamma \vdash e : \tau$
+  \end{center}
+\end{frame}
 
 \begin{frame}{A definitional gap problem}
   \begin{center}
@@ -85,23 +119,16 @@
 \end{frame}
 
 \begin{frame}{The goal}
-  We'd like to be able to \emph{formally} specify type checkers that \\[0.5em]
-
-  \pause
-  \begin{enumerate}
-    \item describe where and what the errors are \pause (\emph{localization})
-    
-      \pause
-    \item carry on in spite of them \pause (\emph{recovery})
-  \end{enumerate}
+  We'd like a way to \emph{formally} specify type checkers that are capable of localizing and
+  recovering from errors
 
   \vspace{1em}
   \pause
-  \begin{mainbox}[]{Guiding principle\only<8->{ (totality)}}
+  \begin{emphbox}{Guiding principle\uncover<4->{ (totality)}}
     \pause
     These typing semantics should describe \\
     \emph{all syntactically well-formed programs}.
-  \end{mainbox}
+  \end{emphbox}
 \end{frame}
 
 \begin{frame}{This paper is about\ldots}
@@ -112,10 +139,12 @@
         type error localization and recovery%
       }
 
-    \item<4-> \textbf{type hole inference}%
-      \uncover<5->{%
-        , a global, constraint-based system \\ \pause
-        that is \emph{gradual} and \emph{neutral} in error localization and recovery
+    \item<5-> \textbf{type hole inference}%
+      \uncover<6->{%
+        , a global, constraint-based system \\
+        \uncover<7->{
+          that is \emph{gradual} and \emph{neutral} in error localization and recovery
+        }
       }
   \end{itemize}
 \end{frame}

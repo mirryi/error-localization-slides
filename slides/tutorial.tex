@@ -162,17 +162,17 @@ let rec syn ctx e =
 \end{frame}
 
 \begin{frame}[fragile]{A total marking}
-  \begin{mainbox}[]{Guiding principle (totality)}
+  \begin{emphbox}{Guiding principle (totality)}
     These typing semantics should describe \\
     \emph{all syntactically well-formed programs}.
-  \end{mainbox}
+  \end{emphbox}
   %
   \pause
   \begin{center}
     $\bm{\Downarrow}$
   \end{center}
 
-  \begin{mainbox}[]{Theorem 2.1. Marking Totality}
+  \begin{emphbox}{Theorem 2.1. Marking Totality}
     \pause
     For all $\ctx$ and $\EMV$,
       there exist $\ECMV$ and $\TMV$
@@ -181,7 +181,7 @@ let rec syn ctx e =
     For all $\ctx$, $\EMV$, and $\TMV$,
       there exists $\ECMV$
         such that $\ctxAnaFixedInto{\ctx}{\EMV}{\ECMV}{\TMV}$.
-  \end{mainbox}
+  \end{emphbox}
 \end{frame}
 
 \begin{frame}[fragile]{Marking function application}
@@ -222,7 +222,7 @@ let rec syn ctx e =
 
   \uncover<8->{
     But what if $\TMV$ doesn't match an arrow type, $\notMatchedArrow{\TMV}$, \\
-    \ie, $\EMV_1$ can't be applied as a function, \eg, in $\ELam{n}{\TNum}{\EAp{n}{\ETrue}}$?
+    \ie, $\EMV_1$ can't be applied as a function, \eg, in $\EAp{\ENum{5}}{\ETrue}$?
   }
 \end{frame}
 
@@ -298,7 +298,7 @@ let rec syn ctx e =
         \end{minipage}
       };
 
-      \draw[-latex, dashed, shorten >=5pt, visible on=<2->] (unmarked) -- (marking) node[midway, above] () {\small derive};
+      \draw[-latex, dashed, shorten >=5pt, visible on=<2->] (unmarked) -- (marking) node[midway, above] () {\small \emph{derive}};
       \draw[-latex, shorten >=5pt, visible on=<3->] (unmarked) to[bend left=20] (marked);
       \draw[-latex, shorten <=5pt, visible on=<5->] (marked)   to[bend left=20] (unmarked);
     \end{tikzpicture}

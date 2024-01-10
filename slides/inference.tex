@@ -48,6 +48,9 @@
       \pause
     \item Solve them via a standard unification algorithm {\footnotesize\parencite{huet1976}} \\
       \pause whilst \emph{accumulating the potential types for each variable}
+
+      \pause
+    \item Not meant to be a standalone type checker!
   \end{itemize}
 \end{frame}
 
@@ -211,7 +214,7 @@
     }
   \end{center}
 
-  \textsc{Hazel} offers the user both choices and the ability to fill either in
+  Hazel offers the user both choices and the ability to fill either in
 
   \begin{tikzpicture}[remember picture,overlay]
     \node[xshift=-4.6cm, yshift=-5cm, visible on=<2>] at (current page.north east) { \mousePointer };
@@ -220,7 +223,7 @@
 \end{frame}
 
 \begin{frame}
-  This approach is \emph{neutral by construction}
+  This approach is \emph{neutral}
 
   \vspace{1em}
   \pause
@@ -230,5 +233,8 @@
 
       \pause
     \item All potential type hole fillings are provided to the user for selection
+
+      \pause
+    \item Control returned to bidirectional system after user selects
   \end{itemize}
 \end{frame}

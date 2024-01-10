@@ -25,6 +25,7 @@
 
 \usepackage{scalerel}
 \usepackage[most]{tcolorbox}
+\usepackage{framed}
 
 \usepackage{pgfpages}
 \usepackage{fancyvrb}
@@ -75,7 +76,6 @@
     \Alt<#1>{\pgfkeysalso{#2}}{\pgfkeysalso{#3}}
   },
 }
-
 
 \pdfstringdefDisableCommands{%
   \def\\{}%
@@ -212,6 +212,10 @@ continuation}\fi}}%
 \makeatletter
 \define@key {mprset}{style}[1]{\def\TirNameStyle{#1}}
 \makeatother
+
+\newenvironment{emphbox}[1]
+  {\begin{leftbar}\vspace{0.3em}\textbf{#1}\\[0.5em]}
+  {\vspace{0.3em}\end{leftbar}}
 
 \newcommand{\ie}{\textit{i.e.}}
 \newcommand{\eg}{\textit{e.g.}}

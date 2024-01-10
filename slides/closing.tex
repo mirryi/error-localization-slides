@@ -1,16 +1,50 @@
-\begin{frame}
-  
-\end{frame}
+\begin{frame}{Bidirectional and unification, together}
+  The two systems supplement each other: \\[1em]
 
-\begin{frame}{More in the paper}
+  \pause
   \begin{itemize}
-    \item A full description of the marked lambda calculus
+    \item \emph{marked lambda calculus}: \\
+      a general recipe for local type error localization and recovery
 
       \pause
+    \item \emph{type hole inference}: \\
+      a workflow for handling globally inconsistent constraints
+  \end{itemize}
+
+  \vspace{1em}
+  \pause
+  Consider using these techniques for your next language!
+\end{frame}
+
+\begin{frame}{More in the paper and artifact}
+  \begin{itemize}
+    \item A full description of the marked lambda calculus\pause, and
+
       \begin{itemize}
-        \item with extensions to richer typing features
-        \item and an Agda mechanization
-        \item and its connections to structured editing
+        \item full metatheory\pause, also mechanized
+          \textcolor{MidnightBlue}{[\href{https://github.com/hazelgrove/error-localization-agda}{hazelgrove/error-localization-agda}]}
+
+          \pause
+        \item extensions to richer typing features \\ \pause
+          (parametric polymorphism and destructuring let)
+
+          \pause
+        \item connections to structured editing
       \end{itemize}
+
+      \pause
+    \item A more thorough discussion of type hole inference\pause, and
+
+      \begin{itemize}
+        \item filling expression holes
+
+          \pause
+        \item polymorphic generalization
+      \end{itemize}
+
+      \pause
+    \item Implementations of both in Hazel
+      \textcolor{BrickRed}{\small[\href{https://hazel.org}{hazel.org}]}
+      \textcolor{MidnightBlue}{\small[\href{https://github.com/hazelgrove/hazel}{hazelgrove/hazel}]}
   \end{itemize}
 \end{frame}
