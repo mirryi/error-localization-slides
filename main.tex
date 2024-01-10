@@ -4,7 +4,9 @@
 \usepackage{silence}
 
 \usepackage[T1]{fontenc}
+\usepackage{fontawesome5}
 
+\usepackage{soul}
 \usepackage{csquotes}
 \usepackage{textcomp}
 \usepackage{listings}
@@ -41,8 +43,25 @@
 
 \usetheme{auriga}
 \usecolortheme{auriga}
-
 % \setbeamercovered{transparent}
+
+\makeatletter
+\let\HL\hl
+\renewcommand\hl{%
+  \let\set@color\beamerorig@set@color
+  \let\reset@color\beamerorig@reset@color
+  \HL}
+\makeatother
+
+\makeatletter
+\let\UL\ul
+\renewcommand\ul{%
+  \let\set@color\beamerorig@set@color
+  \let\reset@color\beamerorig@reset@color
+  \UL}
+\makeatother
+
+\newcommand{\undercolor}[2][Red]{\setulcolor{#1}\ul{#2}}
 \newcommand<>{\onderline}[1]{\alt#2{\underline{#1}}{#1}}
 \newcommand<>{\onderset}[2]{\alt#3{\underset{#1}{#2}}{#2}}
 
@@ -182,12 +201,23 @@ continuation}\fi}}%
 }
 \makeatother
 
+\newcommand\wider[2][3em]{%
+\makebox[\linewidth][c]{%
+  \begin{minipage}{\dimexpr\textwidth+#1\relax}
+  \raggedright#2
+  \end{minipage}%
+  }%
+}
+
 \makeatletter
 \define@key {mprset}{style}[1]{\def\TirNameStyle{#1}}
 \makeatother
 
 \newcommand{\ie}{\textit{i.e.}}
 \newcommand{\eg}{\textit{e.g.}}
+\newcommand{\wrt}{\textit{w.r.t.}}
+
+\newcommand{\mousePointer}{\textcolor{Black!60}{\small\faMousePointer}}
 
 \input{formalism/preamble/utilities}
 \input{formalism/symbols/types}
@@ -198,6 +228,8 @@ continuation}\fi}}%
 \input{formalism/symbols/constraint}
 
 \addbibresource{references.bib}
+
+\graphicspath{{media/}}
 
 \title{Total Type Error Localization and Recovery with Holes}
 \author{\underline{Eric Zhao}, Raef Maroof, Anand Dukkipati, Andrew Blinn, Zhiyi Pan, Cyrus Omar}
@@ -215,5 +247,6 @@ continuation}\fi}}%
 \input{slides/introduction}
 \input{slides/tutorial}
 \input{slides/inference}
+\input{slides/closing}
 
 \end{document}

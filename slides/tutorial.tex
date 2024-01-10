@@ -298,8 +298,9 @@ let rec syn ctx e =
         \end{minipage}
       };
 
-      \draw[-stealth, shorten >=5pt, visible on=<3->] (unmarked) to[bend left=20] (marked);
-      \draw[-stealth, shorten <=5pt, visible on=<5->] (marked)   to[bend left=20] (unmarked);
+      \draw[-latex, dashed, shorten >=5pt, visible on=<2->] (unmarked) -- (marking) node[midway, above] () {\small derive};
+      \draw[-latex, shorten >=5pt, visible on=<3->] (unmarked) to[bend left=20] (marked);
+      \draw[-latex, shorten <=5pt, visible on=<5->] (marked)   to[bend left=20] (unmarked);
     \end{tikzpicture}
   \end{center}
 \end{frame}
@@ -336,7 +337,64 @@ let rec syn ctx e =
         \item Consider the ``success'' case
         \item Consider the ``failure'' cases, introducing error marks
       \end{itemize}
+
+      \pause
+    \item \emph{Not} prescriptive \wrt{} localization strategy
   \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Marking many ways}
+  \small
+  \wider{
+    \begin{mathpar} 
+      \inferrule[\relsize{-1} MKSIf]{
+        \onslide<2->{\ctxAnaFixedInto{\ctx}{\EMV_1}{\ECMV_1}{\TBool}} \\
+        \onslide<3->{\ctxSynFixedInto{\ctx}{\EMV_2}{\ECMV_2}{\TMV_1}} \\
+        \onslide<4->{\ctxSynFixedInto{\ctx}{\EMV_3}{\ECMV_3}{\TMV_2}} \\
+        \onslide<5->{\TMV_3 = \TMeet{\TMV_1}{\TMV_2}}
+      }{
+        \ctxSynFixedInto{\ctx}{\EIf{\EMV_1}{\EMV_2}{\EMV_3}}
+          {\onslide<6->{\ECIf{\ECMV_1}{\ECMV_2}{\ECMV_3}}}
+          {\onslide<7->{\TMV_3}}
+      }
+
+      \uncover<8->{
+        \inferrule[\relsize{-1} MKSInconsistentBranches]{
+          \ctxAnaFixedInto{\ctx}{\EMV_1}{\ECMV_1}{\TBool} \\
+          \ctxSynFixedInto{\ctx}{\EMV_2}{\ECMV_2}{\TMV_1} \\
+          \ctxSynFixedInto{\ctx}{\EMV_3}{\ECMV_3}{\TMV_2} \\
+          \inconsistent{\TMV_1}{\TMV_2}
+        }{
+          \ctxSynFixedInto{\ctx}{\EIf{\EMV_1}{\EMV_2}{\EMV_3}}
+            {\onslide<9->{\ECInconBr{\ECMV_1}{\ECMV_2}{\ECMV_3}}}
+            {\onslide<10->{\TUnknown}}
+        }
+      }
+    \end{mathpar}
+  }
+
+  \vspace{1em}
+  \par\dotfill
+  %
+  \begin{mathpar} 
+    \uncover<11->{
+      \inferrule[\relsize{-1} MKSIf']{
+        \onslide<12->{\ctxAnaFixedInto{\ctx}{\EMV_1}{\ECMV_1}{\TBool}} \\
+        \onslide<13->{
+          \overset{\text{\textcolor{Black!70}{(prioritize first branch)}}}
+            {\colorbox{highlight}{\ctxSynFixedInto{\ctx}{\EMV_2}{\ECMV_2}{\TMV}}}
+        } \\
+        \onslide<14->{
+          \overset{\text{\textcolor{Black!70}{(blame second branch)}}}
+            {\colorbox{highlight}{\ctxAnaFixedInto{\ctx}{\EMV_3}{\ECMV_3}{\TMV}}}
+        }
+      }{
+        \ctxSynFixedInto{\ctx}{\EIf{\EMV_1}{\EMV_2}{\EMV_3}}
+          {\onslide<15->{\ECIf{\ECMV_1}{\ECMV_2}{\ECMV_3}}}
+          {\onslide<16->{\TMV}}
+      }
+    }
+  \end{mathpar}
 \end{frame}
 
 \begin{frame}[fragile]{Marking local inconsistencies}
@@ -394,7 +452,4 @@ let rec syn ctx e =
       \ctxAnaTypeM{\ctx}{\ECInconType{\ECMV}}{\TMV}
     }
   \end{mathpar}
-
-  \vspace{1em}
-  {\small (Complete rules for a small language with booleans, products, lets in the paper)}
 \end{frame}

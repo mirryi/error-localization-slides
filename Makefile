@@ -1,5 +1,5 @@
 .PHONY: all
-all: index.pdf
+all: main.pdf
 
 %.pdf: %.tex
 	latexmk $*.tex

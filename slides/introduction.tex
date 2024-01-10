@@ -32,11 +32,46 @@
   \end{itemize}
 \end{frame}
 
+% \begin{frame}[fragile]{Localization is varied}
+  % \[%
+    % \ELet{x}{\EIf{\ETrue}{\ENum{5}}{}}{\cdots}
+  % \]%
+
+    % \begin{semiverbatim}\small
+% 1 | let x = if true then 5 else false
+                                % \textcolor{red}{^^^^^}
+% \textcolor{red}{\textbf{Error}}: This expression has type bool but an expression
+         % was expected of type int
+% \pause
+% Main.hs:1:18: \textbf{\textcolor{red}{error}:} \textbf{[\textcolor{red}{GHC-39999}]}
+    % • No instance for ‘Num Bool’ arising from the literal ‘5’
+    % • In the expression: 5
+      % In the expression: if True then 5 else False
+      % In an equation for ‘x’: x = if True then 5 else False
+  % |
+% 1 | x = if True then \textcolor{red}{\textbf{5}} else False
+  % |                  \textcolor{red}{\textbf{^}}
+    % \end{semiverbatim}
+
+% main.cpp: In function ‘auto f()’:
+% main.cpp:5:12: error: inconsistent deduction for auto return type: ‘int’ and then ‘bool’
+%     5 |     return false;
+%       |            ^~~~~
+
+% error[E0308]: `if` and `else` have incompatible types
+ % --> src/main.rs:2:34
+  % |
+% 2 |     let x = if true { 5 } else { false };
+  % |                       -          ^^^^^ expected integer, found `bool`
+  % |                       |
+  % |                       expected because of this
+% \end{frame}
+
 \begin{frame}{A definitional gap problem}
   \begin{center}
-    Most of the code we write is \textcolor{RedOrange}{\textbf{ill-formed}}\pause,
+    Most of the code we write is \emph{ill-formed}\pause,
     but conventional language definitions
-    \textcolor{RedOrange}{\textbf{only specify the behaviour of well-formed programs}}.
+    \emph{only specify the behaviour of well-formed programs}.
   \end{center}
   \pause
   \[%
@@ -77,13 +112,10 @@
         type error localization and recovery%
       }
 
-      \begin{itemize}
-        \item<5-> with extensions to richer typing features
-        \item<6-> and an Agda mechanization
-        \item<7-> and its connections to structured editing
-        \item<8-> \emph{not} prescriptive \emph{wrt.} localization strategy
-      \end{itemize}
-
-    \item<9-> a system for constraint-based \textbf{type hole inference}
+    \item<4-> \textbf{type hole inference}%
+      \uncover<5->{%
+        , a global, constraint-based system \\ \pause
+        that is \emph{gradual} and \emph{neutral} in error localization and recovery
+      }
   \end{itemize}
 \end{frame}

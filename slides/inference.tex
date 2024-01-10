@@ -47,8 +47,7 @@
 
       \pause
     \item Solve them via a standard unification algorithm {\footnotesize\parencite{huet1976}} \\
-      \pause whilst \emph{accumulating the potential types for each variable} \\
-      \pause and \emph{continuing on in the face of failures}
+      \pause whilst \emph{accumulating the potential types for each variable}
   \end{itemize}
 \end{frame}
 
@@ -119,8 +118,8 @@
 
   \vspace{1em}
   \pause
-  To unify $\constrain{\TMV_1}{\TMV_2}$, recursively merge $\mathsf{PotentialTypeSet(\TMV_1)}$
-  and $\mathsf{PotentialTypeSet(\TMV_2)}$.
+  To unify $\constrain{\TMV_1}{\TMV_2}$, recursively merge $\mathsf{PotentialTypeSet(\TMV_1)}$ and
+  $\mathsf{PotentialTypeSet(\TMV_2)}$ without substituting
 \end{frame}
 
 \newcommand{\PTS}{\operatorname{\mathsf{PotentialTypeSet}}}
@@ -176,12 +175,12 @@
   \]%
 
   \vspace{1em}
-  We know:
+  Now we know:
 
   \vspace{1em}
   \pause
   \begin{itemize}
-    \item Two potential fillings of $\TUnknown^{\Id{1}}$ are $\TArrow{\TNum}{\TUnknown}$ and $\TNum$\pause, \\
+    \item Two \emph{potential fillings} of $\TUnknown^{\Id{1}}$ are $\TArrow{\TNum}{\TUnknown}$ and $\TNum$\pause, \\
       which is more than one!
 
       \pause
@@ -189,6 +188,47 @@
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Neutral by construction}
+\begin{frame}[fragile]
+  \begin{center}
+    \alt<2->{
+      \alt<3->{
+        \includegraphics[width=0.9\textwidth]{inference-arrow.png}
+      }{
+        \includegraphics[width=0.9\textwidth]{inference-int.png}
+      }
+    }{
+      \includegraphics[width=0.9\textwidth]{inference.png}
+    }
+    \vspace{2em}
+    \alt<2->{
+      \alt<3->{
+        \includegraphics[width=0.9\textwidth]{inspector-arrow.png}
+      }{
+        \includegraphics[width=0.9\textwidth]{inspector-int.png}
+      }
+    }{
+      \includegraphics[width=0.9\textwidth]{inspector.png}
+    }
+  \end{center}
 
+  \textsc{Hazel} offers the user both choices and the ability to fill either in
+
+  \begin{tikzpicture}[remember picture,overlay]
+    \node[xshift=-4.6cm, yshift=-5cm, visible on=<2>] at (current page.north east) { \mousePointer };
+    \node[xshift=-2.3cm, yshift=-5cm, visible on=<3>] at (current page.north east) { \mousePointer };
+  \end{tikzpicture}
+\end{frame}
+
+\begin{frame}
+  This approach is \emph{neutral by construction}
+
+  \vspace{1em}
+  \pause
+  \begin{itemize}
+    \item Localize errors to the originating type hole or error mark\pause, \\
+      instead of guessing about user intent
+
+      \pause
+    \item All potential type hole fillings are provided to the user for selection
+  \end{itemize}
 \end{frame}
