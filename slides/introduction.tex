@@ -11,13 +11,22 @@
     \item We write a lot of ill-formed code \\ \pause
       so services must be \emph{error-resilient}!
   \end{itemize}
+
+  \note[item]{So nowadays, in this, well---I'd say we're now firmly in the middle of the 3rd decade of the
+    21st century---we program with high-level abstractions\ldots}
+  \note[item]{but these abstractions can be pretty complex, right?}
+  \note[item]{As a result, we rely on quite a bit of help from editors and other tooling}
+  \note[item]{because they provide these rich semantic services such as code completion or automated
+    refactoring}
+  \note[item]{Now, the problem is, a lot of our code is ill-formed in some way---in fact, most of
+    the time, the code we're writing is hardly complete, so it's probably wrong somehow}
+  \note[item]{This means that these services have to be able to handle our bad code, or resilient to errors}
 \end{frame}
 
 \begin{frame}{Error localization and recovery}
-  As programmers, we want tools that can
+  As programmers, we want tools that can \\[1em]
 
   \pause
-  \vspace{1em}
   \begin{itemize}
     \item describe \emph{what} and \emph{where} the errors are \pause (\emph{localization})
 
@@ -29,6 +38,15 @@
   \vspace{1em}
   \pause
   \textbf{Our focus:} \emph{type} error localization and recovery!
+
+  \note[item]{This is what we're concerned about in this talk---tools that are resilient to
+    errors, and in particular that means}
+  \note[item]{that they can tell us what the error is and where it is in our code. We call this
+    recovery}
+  \note[item]{and, even in the face of errors, recover optimistically to continue doing what it's
+    doing and find other errors, ideally with minimal loss in service---recovery}
+  \note[item]{As the title of the talk suggests, we're concerned in particular today about these
+    two notions as they pertain to \emph{type} errors}
 \end{frame}
 
 \begin{frame}[fragile, t]{Observations in practice}
@@ -76,6 +94,28 @@ main.cpp:1:50: \textcolor{red}{\textbf{error:}} inconsistent deduction for auto 
   |                  \textcolor{Emerald}{\textbf{|}}
   |                  \textcolor{Emerald}{\textbf{expected because of this}}}
   \end{semiverbatim}
+
+  \note[item]<1-3>{Since being able to localize and recover from errors is pretty important, this problem
+    has garnered plenty of practical interest, and we can see that production tooling supports some
+    form of localization and recovery capability.}
+  \note[item]<1-3>{Let's look for example at this program, in which we've a function f that takes a
+    boolean---and does something}
+  \note[item]<1-3>{x is determined by a conditional}
+  \note[item]<1-3>{and f is applied to x}
+  \note[item]<1-3>{We can immediately see that the branches of the conditional are mismatched wrt to
+    typing, so there should be some support of error diagnostic}
+  \note[item]<4->{and in fact if we throw this at the OCaml compiler, it says, yes, there is, and it's
+    on the false, having prioritized the first branch's integer}
+  \note[item]<4->{ocamlc will stop here, but merlin, which powers editor services nowadays, will also
+    say that there's another error on the usage of x, since it's determined x to be an int but f takes
+    a bool}
+  \note[item]<4->{OK, that's all well and good, so what about Haskell?}
+  \note[item]<4->{It's in agreement with merlin here, though actually if we removed the explicit Int
+    annotation it would blame 5 for not being an instance of Num Bool}
+  \note[item]<4->{For C++ I've had to mangle the program a little but the idea is the same, and g++ is
+    also on the false but suggests more generally that we should look at earlier return statements
+    as well}
+  \note[item]<4->{Rust does similarly, but actually also marks part of the error on 5}
 \end{frame}
 
 \begin{frame}
@@ -92,6 +132,17 @@ main.cpp:1:50: \textcolor{red}{\textbf{error:}} inconsistent deduction for auto 
       \pause
     \item decisions can influence other downstream decisions
   \end{itemize}
+
+  \note[item]{Now obviously these languages all have different kinds of type systems, but from this
+    informal exercise we can observe that}
+  \note[item]{decisions about how to localize can vary, and often tools will try to guess users'
+    intentions when where to localize errors to}
+  \note[item]{Then, to recover, they have to somehow operate with incomplete knowledge about the
+    types at play}
+  \note[item]{and together, upstream error localization decisions, once recovered from, can
+    influence downstream decisions}
+  \note[item]{We think, therefore, that this subject would benefit from rigorous treatment.
+    Unfortunately, in theory\ldots}
 \end{frame}
 
 \begin{frame}{\ldots\ in theory}
@@ -99,6 +150,9 @@ main.cpp:1:50: \textcolor{red}{\textbf{error:}} inconsistent deduction for auto 
     \Large
     $\Gamma \vdash e : \tau$
   \end{center}
+
+  \note[item]{In theory, our type systems generally look like some variation of this}
+  \note[item]{that is, they give rules for when terms are well-typed}
 \end{frame}
 
 \begin{frame}{A definitional gap problem}
@@ -116,6 +170,11 @@ main.cpp:1:50: \textcolor{red}{\textbf{error:}} inconsistent deduction for auto 
     If a type error appears \textcolor{RedOrange}{\textbf{anywhere}},\\
     the program is meaningless \textcolor{Red}{\textbf{everywhere}}.
   \end{center}
+
+  \note[item]{Unfortunately, most of the code we write isn't well-formed in this way, but ill-formed}
+  \note[item]{but our conventional language definitions only give semantics for well-formed programs}
+  \note[item]{So if a type error appears anywhere}
+  \note[item]{as far as the specifications are concerned, the program becomes meaningless as a whole}
 \end{frame}
 
 \begin{frame}{The goal}
@@ -129,6 +188,14 @@ main.cpp:1:50: \textcolor{red}{\textbf{error:}} inconsistent deduction for auto 
     These typing semantics should describe \\
     \emph{all syntactically well-formed programs}.
   \end{emphbox}
+
+  \note[item]{We'd like a way to alleviate this, by being able to create precise specifications for
+    the semantics of these ill-typed programs}
+  \note[item]{in particular, formal specifications for how to handle type errors and recover in
+    spite of them}
+  \note[item]{And these type checker semantics should describe all syntactically well-formed
+    programs}
+  \note[item]{This notion we'll call totality}
 \end{frame}
 
 \begin{frame}{This paper is about\ldots}
@@ -147,4 +214,13 @@ main.cpp:1:50: \textcolor{red}{\textbf{error:}} inconsistent deduction for auto 
         }
       }
   \end{itemize}
+
+  \note[item]{So this paper is about, first of all, the marked lambda calculus}
+  \note[item]{a judgmental framework for doing these things in a bidirectional fashion}
+  \note[item]{The emphasis is on total, and}
+  \note[item]{we choose bidirectional systems as our starting point because it creates a flow of
+  typing data that is conducive to intuitive error localization}
+  \note[item]{Then, we'll describe how to layer type hole inference, a global constraint-based
+    inference system atop the marked lambda calculus in a way that allows us to neatly combine the
+    bidirectional and unification approaches for even better localization}
 \end{frame}

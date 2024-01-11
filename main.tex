@@ -1,4 +1,4 @@
-\documentclass[14pt,aspectratio=169,xcolor={dvipsnames}]{beamer}
+\documentclass[14pt, aspectratio=169, xcolor={dvipsnames}]{beamer}
 
 \hbadness=99999
 \usepackage{silence}
@@ -38,8 +38,8 @@
 \usetikzlibrary{arrows, arrows.meta, shapes, calc, positioning, backgrounds, hobby}
 
 % \ifnotes
-% \setbeamertemplate{note page}[plain]
-% \setbeameroption{show notes on second screen=right}
+\setbeamertemplate{note page}[plain]
+\setbeameroption{show notes on second screen}
 % \fi
 
 \usetheme{auriga}
@@ -245,7 +245,13 @@ continuation}\fi}}%
   \setbeamercolor{page number in head/foot}{fg=background canvas.bg}
   \begin{frame}
     \titlepage
+
+    \note[item]{Introduce myself, collaborators, advisor}
+    \note[item]{Thanks for bearing with me in this last talk of the day}
+    \note[item]{I'll be talking about, as the title suggests, type errors, but first let's step back
+      and survey the current status quo}
   \end{frame}
+
 }
 
 \input{slides/introduction}
