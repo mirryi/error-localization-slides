@@ -1,4 +1,5 @@
 \begin{frame}{Nowadays\ldots}
+  \pause
   \begin{itemize}
     \item We program with high-level abstractions \\ \pause
       but these abstractions can be complex!
@@ -42,7 +43,7 @@
   \note[item]{This is what we're concerned about in this talk---tools that are resilient to
     errors, and in particular that means}
   \note[item]{that they can tell us what the error is and where it is in our code. We call this
-    recovery}
+    localization}
   \note[item]{and, even in the face of errors, recover optimistically to continue doing what it's
     doing and find other errors, ideally with minimal loss in service---recovery}
   \note[item]{As the title of the talk suggests, we're concerned in particular today about these
@@ -55,8 +56,8 @@
       \ELet{f}{\ELam{b}{\TBool}{\cdots}}{\pause
         \ELet{x}
           {\EIf{\ETrue}
-               {\onderset<8>{\goodcolor{Emerald}{\bm{\wedge}}}{\ENum{5}}}
-               {\onderset<4-5,6,7,8>{\goodcolor{Red}{\bm{\wedge}}}{\EFalse}}}
+               {\onderset<9>{\goodcolor{Emerald}{\bm{\wedge}}}{\onderset<7>{\goodcolor{Red}{\bm{\wedge}}}{\ENum{5}}}}
+               {\onderset<4-5,6,8,9>{\goodcolor{Red}{\bm{\wedge}}}{\EFalse}}}
           {\pause\EAp{f}{\onderset<5,6>{\goodcolor{Red}{\wedge}}{x}}}
       }
     $%
@@ -81,11 +82,16 @@ Main.hs:4:26: \textbf{\textcolor{red}{error}:} \textbf{[\textcolor{red}{GHC-3999
   |
 4 | _ = let x = if True then (5::Int) else False in f \textcolor{red}{\textbf{x}}
   |                                                   \textcolor{red}{\textbf{^}}}\only<7>{
+Main.hs:4:26: \textbf{\textcolor{red}{error}:} \textbf{[\textcolor{red}{GHC-39999}]}
+    • No instance for ‘Num Bool’ arising from the literal ‘5’
+  |
+4 | _ = let x = if True then \textcolor{red}{\textbf{5}} else False in f x
+  |                          \textcolor{red}{\textbf{^}}}\only<8>{
 main.cpp:1:50: \textcolor{red}{\textbf{error:}} inconsistent deduction for auto return type:
                       ‘int’ and then ‘bool’
     1 | auto x() { if (true) { return 5; } else { return \textcolor{red}{\textbf{false}}; } }
       |                                              \textcolor{red}{\textbf{^~~~~}}
-    2 | auto y = f(x())}\only<8>{
+    2 | auto y = f(x())}\only<9>{
 \textbf{\textcolor{red}{error[E0308]}: `if` and `else` have incompatible types}
  --> src/main.rs:2:30
   |
@@ -208,7 +214,7 @@ main.cpp:1:50: \textcolor{red}{\textbf{error:}} inconsistent deduction for auto 
 
     \item<5-> \textbf{type hole inference}%
       \uncover<6->{%
-        , a global, constraint-based system \\
+        : a global, constraint-based system \\
         \uncover<7->{
           that is \emph{gradual} and \emph{neutral} in error localization and recovery
         }

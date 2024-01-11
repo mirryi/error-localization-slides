@@ -31,26 +31,12 @@
 
       \pause
     \item \textbf{Type hole inference} solves and marks \emph{global inconsistencies}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}{Type hole inference}
-  \begin{itemize}
-    \item Occurrences of $\TUnknown$ arise from
-      \pause (1) \emph{type holes}, \eg, in $\ELam{x}{\TUnknown}{\cdots}$
-      \pause or (2) error marks
 
       \pause
-    \item Gather constraints from the bidirectional systems\pause,
-      treating occurrences of $\TUnknown$ as unification variables
-      {\footnotesize\parencite{siek2008}}
-
-      \pause
-    \item Solve them via a standard unification algorithm {\footnotesize\parencite{huet1976}} \\
-      \pause whilst \emph{accumulating the potential types for each variable}
-
-      \pause
-    \item Not meant to be a standalone type checker!
+      \begin{itemize}
+        \item Not meant to be a standalone type checker
+        \item Downstream service to supplement the marked lambda calculus
+      \end{itemize}
   \end{itemize}
 \end{frame}
 
@@ -60,73 +46,33 @@
 \newcommand{\ProvExp}[1]{\ensuremath{exp\goodcolor{\colorOkSideJudge}{(}#1\goodcolor{\colorOkSideJudge}{)}}}
 \newcommand{\ProvIn}[1]{\ensuremath{\to_L\goodcolor{\colorOkSideJudge}{(}#1\goodcolor{\colorOkSideJudge}{)}}}
 \newcommand{\ProvOut}[1]{\ensuremath{\to_R\goodcolor{\colorOkSideJudge}{(}#1\goodcolor{\colorOkSideJudge}{)}}}
-
-\begin{frame}{Provenances for types}
-  Add type provenances $\Provp$ to the \emph{marked language}:
-
-  \vspace{1em}
-  \pause
-  \begin{itemize}
-    \item Link occurrences of $\TUnknown$ to the originating type hole or error mark
-      (denoted by unique id $\IdU$)
-
-    \item Distinguish between different $\TUnknown$ based on locus
-  \end{itemize}
-
-  \pause
-  \[\begin{array}{rcl}
-    \Provp & \Coloneqq & \ProvU \mid \ProvExp{\ProvU} \mid \ProvIn{\Provp} \mid \ProvOut{\Provp} \\
-    \pause
-    \TMV   & \Coloneqq & \cdots \mid \TUnknown^{p}\\
-    \pause
-    \ECMV  & \Coloneqq & \cdots \mid \ECFreeId{x}{\IdU} \mid \ECApSynNonMatchedArrowId{\ECMV}{\IdU} \mid \ECInconTypeId{\ECMV}{\IdU}
-  \end{array}\]
-\end{frame}
-
-\begin{frame}{Generating constraints bidirectionally}
-  Augment the type system (of the marked language) to generate sets $C$ of constraints
-  $\constrain{\TMV_1}{\TMV_2}$\pause, which force $\TMV_1$ and $\TMV_2$ to be consistent:
-  \pause
-  \[%
-    \synConstraint{\ctx}{\ECMV}{\TMV}{C} \qquad \anaConstraint{\ctx}{\ECMV}{\TMV}{C}
-  \]%
-
-  \pause
-  \begin{mathpar}
-    \judgment{
-      \synConstraint{\ctx}{\ECMV}{\TMV'}{C} \\
-      \consistent{\TMV}{\TMV'}
-    }{
-      \anaConstraint{\ctx}{\ECMV}{\TMV}{C \cup \{ \constrain{\TMV}{\TMV'} \}}
-    }{MASubsume-C}
-
-    \pause
-    \judgment{
-        \synConstraint{\ctx}{\ECMV}{\TMV'}{C} \\
-        \inconsistent{\TMV}{\TMV'}
-    }{
-      \anaConstraint{\ctx}{\ECInconTypeId{\ECMV}{u}}{\TMV}{C \cup \{ \constrain{\TMV}{\TUnknown^{\ProvExp{\IdU}}} \}}
-    }{MAInconsistentTypes-C}
-  \end{mathpar}
-\end{frame}
-
-\begin{frame}{Unification with inconsistencies}
-  For each occurrence of $\TUnknown$, accumulate the $\mathsf{PotentialTypeSet}$\pause: \\
-  \emph{all} potential type fillings as inferred from the constraints
-
-  \[\begin{array}{rrcl}
-    \mathsf{PotentialTypeSet} & s & \Coloneqq & \{ t^{*} \} \\
-    \mathsf{PotentialType}    & t & \Coloneqq & \TUnknown^\Provp \mid \TNum \mid \TBool \mid \TArrow{s}{s}
-  \end{array}\]
-
-  \vspace{1em}
-  \pause
-  To unify $\constrain{\TMV_1}{\TMV_2}$, recursively merge $\mathsf{PotentialTypeSet(\TMV_1)}$ and
-  $\mathsf{PotentialTypeSet(\TMV_2)}$ without substituting
-\end{frame}
-
 \newcommand{\PTS}{\operatorname{\mathsf{PotentialTypeSet}}}
 \newcommand{\cursor}{\ensuremath{\goodcolor{\colorOkSideJudge}{\bm{\wedge}}}}
+
+\begin{frame}{Type hole inference}
+  \begin{itemize}
+    \item Occurrences of $\TUnknown$ arise from
+      \pause (1) \emph{type holes}, \eg, in $\ELam{x}{\TUnknown}{\cdots}$ \\
+      \pause or (2) error marks
+
+      \pause
+    \item Gather constraints from the bidirectional system\pause,
+      treating occurrences of $\TUnknown$ as unification variables
+      {\footnotesize\parencite{siek2008}}
+
+      \pause
+    \item Solve them via a standard unification algorithm {\footnotesize\parencite{huet1976}} \\
+      \pause whilst accumulating all $\PTS(\TUnknown^{\Provp})$
+      %
+      \pause
+      \begin{itemize}
+        \item Set of all potential type \emph{fillings}, inferred from constraints
+          \pause
+        \item To unify $\constrain{\TMV_1}{\TMV_2}$, recursively merge
+          $\mathsf{PotentialTypeSet(\TMV_1)}$ and $\mathsf{PotentialTypeSet(\TMV_2)}$
+      \end{itemize}
+  \end{itemize}
+\end{frame}
 
 \begin{frame}
   \[%
@@ -134,7 +80,7 @@
   \]%
 
   \uncover<2->{
-    yields the (inconsistent) constraints
+    yields the constraints
     \[%
       \{ \onderset<6>{\cursor}{\constrain{\TUnknown^{\Id{1}}}{\TArrow{\TUnknown^{\ProvIn{\Id{1}}}}{\TUnknown^{\ProvOut{\Id{1}}}}}}
        \only<3->{, \onderset<7>{\cursor}{\constrain{\TNum}{\TUnknown^{\Id{1}}}}}
@@ -165,30 +111,12 @@
       }
     \]%
   }
-\end{frame}
 
-\begin{frame}
-  \[%
-    \ELam{f}{\TUnknown^{\Id{1}}}{\EAp{f}}{(\EPlus{f}{1})}
-  \]%
-  \[%
-    \PTS(\TUnknown^{\Id{1}})
-      = \{ \TArrow{\{ \TNum \}}{\{ \TUnknown^{\ProvOut{\Id{1}}} \}},
-         \TNum \}
-  \]%
-
-  \vspace{1em}
-  Now we know:
-
-  \vspace{1em}
-  \pause
-  \begin{itemize}
-    \item Two \emph{potential fillings} of $\TUnknown^{\Id{1}}$ are $\TArrow{\TNum}{\TUnknown}$ and $\TNum$\pause, \\
-      which is more than one!
-
-      \pause
-    \item $\TUnknown^{\Id{1}}$ is unsolved; inconsistent constraints!
-  \end{itemize}
+  \vspace{-1em}
+  \onslide<9->{
+    Two \emph{potential fillings} of $\TUnknown^{\Id{1}}$ are $\TArrow{\TNum}{\TUnknown}$ and
+    $\TNum$\onslide<10->{, which is more than one; inconsistent constraints!}
+  }
 \end{frame}
 
 \begin{frame}[fragile]
@@ -214,7 +142,8 @@
     }
   \end{center}
 
-  Hazel offers the user both choices and the ability to fill either in
+  Hazel \textcolor{BrickRed}{\small[\href{https://hazel.org}{hazel.org}]}
+  offers the user ability to fill either in
 
   \begin{tikzpicture}[remember picture,overlay]
     \node[xshift=-4.6cm, yshift=-5cm, visible on=<2>] at (current page.north east) { \mousePointer };

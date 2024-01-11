@@ -1,0 +1,156 @@
+\begin{frame}[fragile]{Marking many ways}
+  \small
+  \wider{
+    \begin{mathpar} 
+      \inferrule[\relsize{-1} MKSIf]{
+        \onslide<2->{\ctxAnaFixedInto{\ctx}{\EMV_1}{\ECMV_1}{\TBool}} \\
+        \onslide<3->{\ctxSynFixedInto{\ctx}{\EMV_2}{\ECMV_2}{\TMV_1}} \\
+        \onslide<4->{\ctxSynFixedInto{\ctx}{\EMV_3}{\ECMV_3}{\TMV_2}} \\
+        \onslide<5->{\TMV_3 = \TMeet{\TMV_1}{\TMV_2}}
+      }{
+        \ctxSynFixedInto{\ctx}{\EIf{\EMV_1}{\EMV_2}{\EMV_3}}
+          {\onslide<6->{\ECIf{\ECMV_1}{\ECMV_2}{\ECMV_3}}}
+          {\onslide<7->{\TMV_3}}
+      }
+
+      \uncover<8->{
+        \inferrule[\relsize{-1} MKSInconsistentBranches]{
+          \ctxAnaFixedInto{\ctx}{\EMV_1}{\ECMV_1}{\TBool} \\
+          \ctxSynFixedInto{\ctx}{\EMV_2}{\ECMV_2}{\TMV_1} \\
+          \ctxSynFixedInto{\ctx}{\EMV_3}{\ECMV_3}{\TMV_2} \\
+          \inconsistent{\TMV_1}{\TMV_2}
+        }{
+          \ctxSynFixedInto{\ctx}{\EIf{\EMV_1}{\EMV_2}{\EMV_3}}
+            {\onslide<9->{\ECInconBr{\ECMV_1}{\ECMV_2}{\ECMV_3}}}
+            {\onslide<10->{\TUnknown}}
+        }
+      }
+    \end{mathpar}
+  }
+
+  \vspace{1em}
+  \par\dotfill
+  %
+  \begin{mathpar} 
+    \uncover<11->{
+      \inferrule[\relsize{-1} MKSIf']{
+        \onslide<12->{\ctxAnaFixedInto{\ctx}{\EMV_1}{\ECMV_1}{\TBool}} \\
+        \onslide<13->{
+          \overset{\text{\textcolor{Black!70}{(prioritize first branch)}}}
+            {\colorbox{highlight}{\ctxSynFixedInto{\ctx}{\EMV_2}{\ECMV_2}{\TMV}}}
+        } \\
+        \onslide<14->{
+          \overset{\text{\textcolor{Black!70}{(blame second branch)}}}
+            {\colorbox{highlight}{\ctxAnaFixedInto{\ctx}{\EMV_3}{\ECMV_3}{\TMV}}}
+        }
+      }{
+        \ctxSynFixedInto{\ctx}{\EIf{\EMV_1}{\EMV_2}{\EMV_3}}
+          {\onslide<15->{\ECIf{\ECMV_1}{\ECMV_2}{\ECMV_3}}}
+          {\onslide<16->{\TMV}}
+      }
+    }
+  \end{mathpar}
+\end{frame}
+
+\begin{frame}{Provenances for types}
+  Add type provenances $\Provp$ to the \emph{marked language}:
+
+  \vspace{1em}
+  \pause
+  \begin{itemize}
+    \item Link occurrences of $\TUnknown$ to the originating type hole or error mark
+      (denoted by unique id $\IdU$)
+
+    \item Distinguish between different $\TUnknown$ based on locus
+  \end{itemize}
+
+  \pause
+  \[\begin{array}{rcl}
+    \Provp & \Coloneqq & \ProvU \mid \ProvExp{\ProvU} \mid \ProvIn{\Provp} \mid \ProvOut{\Provp} \\
+    \pause
+    \TMV   & \Coloneqq & \cdots \mid \TUnknown^{p}\\
+    \pause
+    \ECMV  & \Coloneqq & \cdots \mid \ECFreeId{x}{\IdU} \mid \ECApSynNonMatchedArrowId{\ECMV}{\IdU} \mid \ECInconTypeId{\ECMV}{\IdU}
+  \end{array}\]
+\end{frame}
+
+\begin{frame}{Generating constraints bidirectionally}
+  Augment the type system (of the marked language) to generate sets $C$ of constraints
+  $\constrain{\TMV_1}{\TMV_2}$\pause, which force $\TMV_1$ and $\TMV_2$ to be consistent:
+  \pause
+  \[%
+    \synConstraint{\ctx}{\ECMV}{\TMV}{C} \qquad \anaConstraint{\ctx}{\ECMV}{\TMV}{C}
+  \]%
+
+  \pause
+  \begin{mathpar}
+    \judgment{
+      \synConstraint{\ctx}{\ECMV}{\TMV'}{C} \\
+      \consistent{\TMV}{\TMV'}
+    }{
+      \anaConstraint{\ctx}{\ECMV}{\TMV}{C \cup \{ \constrain{\TMV}{\TMV'} \}}
+    }{MASubsume-C}
+
+    \pause
+    \judgment{
+        \synConstraint{\ctx}{\ECMV}{\TMV'}{C} \\
+        \inconsistent{\TMV}{\TMV'}
+    }{
+      \anaConstraint{\ctx}{\ECInconTypeId{\ECMV}{u}}{\TMV}{C \cup \{ \constrain{\TMV}{\TUnknown^{\ProvExp{\IdU}}} \}}
+    }{MAInconsistentTypes-C}
+  \end{mathpar}
+\end{frame}
+
+\begin{frame}{Unification with inconsistencies}
+  For each occurrence of $\TUnknown$, accumulate the $\mathsf{PotentialTypeSet}$\pause: \\
+  \emph{all} potential type fillings as inferred from the constraints
+
+  \[\begin{array}{rrcl}
+    \mathsf{PotentialTypeSet} & s & \Coloneqq & \{ t^{*} \} \\
+    \mathsf{PotentialType}    & t & \Coloneqq & \TUnknown^\Provp \mid \TNum \mid \TBool \mid \TArrow{s}{s}
+  \end{array}\]
+
+  \vspace{1em}
+  \pause
+  To unify $\constrain{\TMV_1}{\TMV_2}$, recursively merge $\mathsf{PotentialTypeSet(\TMV_1)}$ and
+  $\mathsf{PotentialTypeSet(\TMV_2)}$ without substituting
+\end{frame}
+
+\begin{frame}
+  \[%
+    \ELam{f}{\TUnknown^{\Id{1}}}{\EAp{f}}{(\EPlus{f}{1})}
+  \]%
+
+  \uncover<2->{
+    yields the (inconsistent) constraints
+    \[%
+      \{ \onderset<6>{\cursor}{\constrain{\TUnknown^{\Id{1}}}{\TArrow{\TUnknown^{\ProvIn{\Id{1}}}}{\TUnknown^{\ProvOut{\Id{1}}}}}}
+       \only<3->{, \onderset<7>{\cursor}{\constrain{\TNum}{\TUnknown^{\Id{1}}}}}
+       \only<4->{, \onderset<8>{\cursor}{\constrain{\TNum}{\TUnknown^{\ProvIn{\Id{1}}}}}} \}
+    \]%
+  }
+  
+  \vspace{-1em}
+  \uncover<5->{
+    and solving gives
+    \[%
+      \PTS(\TUnknown^{\Id{1}})
+        =
+      \Alt<6->{
+        \Alt<7->{
+          \Alt<8->{
+            \{ \TArrow{\{ \onderline<8>{\TNum} \}}{\{ \TUnknown^{\ProvOut{\Id{1}}} \}},
+               \TNum \}
+          }{
+            \{ \TArrow{\{ \TUnknown^{\ProvIn{\Id{1}}} \}}{\{ \TUnknown^{\ProvOut{\Id{1}}} \}},
+             \underline{\TNum} \}
+          }
+        }{
+          \{ \underline{\TArrow{\{ \TUnknown^{\ProvIn{\Id{1}}} \}}{\{ \TUnknown^{\ProvOut{\Id{1}}} \}}} \}
+        }
+      }{
+        \{ \}
+      }
+    \]%
+  }
+\end{frame}

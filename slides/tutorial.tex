@@ -38,9 +38,6 @@
   \pause
   \pause
   But what if $\notInCtx{\ctx}{x}$?
-  \hfill
-  \pause
-  `$\inCtx{\ctx}{x}{\TMV}$' is `fallible'!
 \end{frame}
 
 \begin{frame}[fragile]
@@ -51,16 +48,15 @@ let rec syn ctx e =
   match e with
     Var x ->
       match Ctx.lookup ctx x with
-        Some ty -> @\only<1-3>{ty}\only<4>{\goodcolor{PineGreen}{Some(ty)}}\only<5>{\goodcolor{PineGreen}{Ok(ty)}}@
-        None    -> @\goodcolor{red}{\only<1>{???}\only<2>{assert false}\only<3>{failwith (x ++ " is unbound")}\only<4>{None}\only<5>{Error(UnboundError(...))}}@
+        Some ty -> @\only<1-3>{ty}\only<4>{\goodcolor{PineGreen}{Ok(ty)}}@
+        None    -> @\goodcolor{red}{\only<1>{???}\only<2>{assert false}\only<3>{failwith (x ++ " is unbound")}\only<4>{Error(UnboundError(...))}}@
     ...
   \end{lstlisting}
 
   \only<1>{\phantom{Option 1}}
-  \only<2>{Option 1: crash}
-  \only<3>{Option 2: raise an exception}
-  \only<4>{Option 3: return \texttt{Option.None}}
-  \only<5>{Option 4: return \texttt{Result.Error} with some diagnostic information}
+  \only<2>{Option 1: don't be ridiculous, that's impossible}
+  \only<3>{Option 2: uh oh, not my problem}
+  \only<4>{Option 3: uh oh, not my problem but \emph{gracefully}}
 \end{frame}
 
 \begin{frame}[fragile]
@@ -155,7 +151,7 @@ let rec syn ctx e =
     \inferrule[MKSFree]{
       \notInCtx{\ctx}{x}
     }{
-      \uncover<3->{\ctxSynFixedInto{\ctx}{x}{\uncover<5->{\ECFree{x}}}{\uncover<4->{\TUnknown}}}
+      \uncover<3->{\ctxSynFixedInto{\ctx}{x}{\uncover<4->{\ECFree{x}}}{\uncover<5->{\TUnknown}}}
     }
     }
   \end{mathpar}
@@ -175,12 +171,11 @@ let rec syn ctx e =
   \begin{emphbox}{Theorem 2.1. Marking Totality}
     \pause
     For all $\ctx$ and $\EMV$,
-      there exist $\ECMV$ and $\TMV$
-        such that $\ctxSynFixedInto{\ctx}{\EMV}{\ECMV}{\TMV}$. \\
-    \pause
+      $\exists \ECMV, \TMV$
+        s.t. $\ctxSynFixedInto{\ctx}{\EMV}{\ECMV}{\TMV}$. \\
     For all $\ctx$, $\EMV$, and $\TMV$,
-      there exists $\ECMV$
-        such that $\ctxAnaFixedInto{\ctx}{\EMV}{\ECMV}{\TMV}$.
+      $\exists \ECMV$
+        s.t. $\ctxAnaFixedInto{\ctx}{\EMV}{\ECMV}{\TMV}$.
   \end{emphbox}
 \end{frame}
 
@@ -215,7 +210,7 @@ let rec syn ctx e =
       \uncover<4->{\matchedArrow{\TMV}{\TMV_1}{\TMV_2}} \\
       \uncover<5->{\ctxAnaFixedInto{\ctx}{\EMV_2}{\ECMV_2}{\TMV_1}} \\
     }{
-      \ctxSynFixedInto{\ctx}{\EAp{\EMV_1}{\EMV_2}}{\uncover<7->{\ECAp{\ECMV_1}{\ECMV_2}}}{\uncover<6->{\TMV_2}}
+      \ctxSynFixedInto{\ctx}{\EAp{\EMV_1}{\EMV_2}}{\uncover<6->{\ECAp{\ECMV_1}{\ECMV_2}}}{\uncover<7->{\TMV_2}}
     }
     }
   \]%
@@ -242,13 +237,13 @@ let rec syn ctx e =
     }
 
     \uncover<3->{
-    \inferrule[MKSAp2]{
-      \ctxSynFixedInto{\ctx}{\EMV_1}{\ECMV_1}{\TMV} \\
-      \notMatchedArrow{\TMV} \\
-      \uncover<4->{\ctxAnaFixedInto{\ctx}{\EMV_2}{\ECMV_2}{\TUnknown}}
-    }{
-      \ctxSynFixedInto{\ctx}{\EAp{\EMV_1}{\EMV_2}}{\uncover<6->{\ECApSynNonMatchedArrow{\ECMV_1}{\ECMV_2}}}{\uncover<5->{\TUnknown}}
-    }
+      \inferrule[MKSAp2]{
+        \ctxSynFixedInto{\ctx}{\EMV_1}{\ECMV_1}{\TMV} \\
+        \notMatchedArrow{\TMV} \\
+        \uncover<4->{\ctxAnaFixedInto{\ctx}{\EMV_2}{\ECMV_2}{\TUnknown}}
+      }{
+        \ctxSynFixedInto{\ctx}{\EAp{\EMV_1}{\EMV_2}}{\uncover<5->{\ECApSynNonMatchedArrow{\ECMV_1}{\ECMV_2}}}{\uncover<6->{\TUnknown}}
+      }
     }
   \end{mathpar}
   }
@@ -305,25 +300,27 @@ let rec syn ctx e =
   \end{center}
 \end{frame}
 
-\begin{frame}[fragile]{}
-  \begin{mainbox}[]{Lemma. Marking Well-Typed Terms}
-    If $\ctxSynTypeU{\ctx}{\EMV}{\TMV}$,
-      then there exists $\ECMV$
-        such that $\ctxSynFixedInto{\ctx}{\EMV}{\ECMV}{\TMV}$. \\
-    If $\ctxAnaTypeU{\ctx}{\EMV}{\TMV}$,
-      then there exists $\ECMV$
-        such that $\ctxAnaFixedInto{\ctx}{\EMV}{\ECMV}{\TMV}$.
-  \end{mainbox}
-
-  \pause
-  \begin{mainbox}[]{Theorem 2.2. Marking Well-Formedness}
+\begin{frame}[fragile]
+  \begin{emphbox}{Theorem 2.2. Marking Well-Formedness}
     If $\ctxSynFixedInto{\ctx}{\EMV}{\ECMV}{\TMV}$,
       then $\ctxSynTypeM{\ctx}{\ECMV}{\TMV}$
         and $\erasesTo{\ECMV}{\EMV}$. \\
     If $\ctxAnaFixedInto{\ctx}{\EMV}{\ECMV}{\TMV}$,
       then $\ctxAnaTypeM{\ctx}{\ECMV}{\TMV}$
         and $\erasesTo{\ECMV}{\EMV}$.
-  \end{mainbox}
+  \end{emphbox}
+
+  \pause
+  \begin{emphbox}{Theorem 2.3(1). Marking Well-Typed Terms}
+    If $\ctxSynTypeU{\ctx}{\EMV}{\TMV}$,
+      then $\exists \ECMV$
+        s.t. $\ctxSynFixedInto{\ctx}{\EMV}{\ECMV}{\TMV}$
+        and $\markless{\ECMV}$. \\
+    If $\ctxAnaTypeU{\ctx}{\EMV}{\TMV}$,
+      then $\exists \ECMV$
+        s.t. $\ctxAnaFixedInto{\ctx}{\EMV}{\ECMV}{\TMV}$
+        and $\markless{\ECMV}$.
+  \end{emphbox}
 \end{frame}
 
 \begin{frame}[fragile]{The recipe}
@@ -339,62 +336,14 @@ let rec syn ctx e =
       \end{itemize}
 
       \pause
-    \item \emph{Not} prescriptive \wrt{} localization strategy
+    \item \emph{Not} prescriptive \wrt{} localization strategy,\pause \eg,
+      %
+      \begin{itemize}
+        \item use different marks, localize somewhere else, etc.
+          \pause
+        \item extend the judgments to accumulate facts that inform localization decisions
+      \end{itemize}
   \end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]{Marking many ways}
-  \small
-  \wider{
-    \begin{mathpar} 
-      \inferrule[\relsize{-1} MKSIf]{
-        \onslide<2->{\ctxAnaFixedInto{\ctx}{\EMV_1}{\ECMV_1}{\TBool}} \\
-        \onslide<3->{\ctxSynFixedInto{\ctx}{\EMV_2}{\ECMV_2}{\TMV_1}} \\
-        \onslide<4->{\ctxSynFixedInto{\ctx}{\EMV_3}{\ECMV_3}{\TMV_2}} \\
-        \onslide<5->{\TMV_3 = \TMeet{\TMV_1}{\TMV_2}}
-      }{
-        \ctxSynFixedInto{\ctx}{\EIf{\EMV_1}{\EMV_2}{\EMV_3}}
-          {\onslide<6->{\ECIf{\ECMV_1}{\ECMV_2}{\ECMV_3}}}
-          {\onslide<7->{\TMV_3}}
-      }
-
-      \uncover<8->{
-        \inferrule[\relsize{-1} MKSInconsistentBranches]{
-          \ctxAnaFixedInto{\ctx}{\EMV_1}{\ECMV_1}{\TBool} \\
-          \ctxSynFixedInto{\ctx}{\EMV_2}{\ECMV_2}{\TMV_1} \\
-          \ctxSynFixedInto{\ctx}{\EMV_3}{\ECMV_3}{\TMV_2} \\
-          \inconsistent{\TMV_1}{\TMV_2}
-        }{
-          \ctxSynFixedInto{\ctx}{\EIf{\EMV_1}{\EMV_2}{\EMV_3}}
-            {\onslide<9->{\ECInconBr{\ECMV_1}{\ECMV_2}{\ECMV_3}}}
-            {\onslide<10->{\TUnknown}}
-        }
-      }
-    \end{mathpar}
-  }
-
-  \vspace{1em}
-  \par\dotfill
-  %
-  \begin{mathpar} 
-    \uncover<11->{
-      \inferrule[\relsize{-1} MKSIf']{
-        \onslide<12->{\ctxAnaFixedInto{\ctx}{\EMV_1}{\ECMV_1}{\TBool}} \\
-        \onslide<13->{
-          \overset{\text{\textcolor{Black!70}{(prioritize first branch)}}}
-            {\colorbox{highlight}{\ctxSynFixedInto{\ctx}{\EMV_2}{\ECMV_2}{\TMV}}}
-        } \\
-        \onslide<14->{
-          \overset{\text{\textcolor{Black!70}{(blame second branch)}}}
-            {\colorbox{highlight}{\ctxAnaFixedInto{\ctx}{\EMV_3}{\ECMV_3}{\TMV}}}
-        }
-      }{
-        \ctxSynFixedInto{\ctx}{\EIf{\EMV_1}{\EMV_2}{\EMV_3}}
-          {\onslide<15->{\ECIf{\ECMV_1}{\ECMV_2}{\ECMV_3}}}
-          {\onslide<16->{\TMV}}
-      }
-    }
-  \end{mathpar}
 \end{frame}
 
 \begin{frame}[fragile]{Marking local inconsistencies}
@@ -419,12 +368,12 @@ let rec syn ctx e =
       \ctxAnaFixedInto{\ctx}{\EMV}{\ECMV}{\TMV}
     }
 
-    \inferrule[MASubsume]{
-      \ctxSynTypeM{\ctx}{\ECMV}{\TMV'} \\
-      \consistent{\TMV}{\TMV'}
-    }{
-      \ctxAnaTypeM{\ctx}{\ECMV}{\TMV}
-    }
+    % \inferrule[MASubsume]{
+      % \ctxSynTypeM{\ctx}{\ECMV}{\TMV'} \\
+      % \consistent{\TMV}{\TMV'}
+    % }{
+      % \ctxAnaTypeM{\ctx}{\ECMV}{\TMV}
+    % }
   \end{mathpar}
 \end{frame}
 
@@ -438,6 +387,13 @@ let rec syn ctx e =
 
   \pause
   \begin{mathpar}
+    \inferrule[MKASubsume]{
+      \ctxSynFixedInto{\ctx}{\EMV}{\ECMV}{\TMV'} \\
+      \consistent{\TMV}{\TMV'}
+    }{
+      \ctxAnaFixedInto{\ctx}{\EMV}{\ECMV}{\TMV}
+    }
+
     \inferrule[MKAInconsistentTypes]{
       \ctxSynFixedInto{\ctx}{\EMV}{\ECMV}{\TMV'} \\
       \inconsistent{\TMV}{\TMV'}
@@ -445,11 +401,11 @@ let rec syn ctx e =
       \ctxAnaFixedInto{\ctx}{\EMV}{\ECInconType{\ECMV}}{\TMV}
     }
 
-    \inferrule[MAInconsistentTypes]{
-      \ctxSynTypeM{\ctx}{\ECMV}{\TMV'} \\
-      \inconsistent{\TMV}{\TMV'}
-    }{
-      \ctxAnaTypeM{\ctx}{\ECInconType{\ECMV}}{\TMV}
-    }
+    % \inferrule[MAInconsistentTypes]{
+      % \ctxSynTypeM{\ctx}{\ECMV}{\TMV'} \\
+      % \inconsistent{\TMV}{\TMV'}
+    % }{
+      % \ctxAnaTypeM{\ctx}{\ECInconType{\ECMV}}{\TMV}
+    % }
   \end{mathpar}
 \end{frame}
