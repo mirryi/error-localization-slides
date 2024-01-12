@@ -6,12 +6,12 @@
 \newcommand{\ctxAna}[3]{\ensuremath{#1 \entails #2 \ana #3}}
 
 \begin{frame}[fragile]{Marked lambda calculus: a tutorial}
-  \textbf{Start:} a small gradually typed lambda calculus
+  \textbf{Start:} a small gradually typed lambda calculus*
   %
   \[\begin{array}{rcl}
     \TMV  & \Coloneqq & \TUnknown \mid \TNum \mid \TBool \mid \TArrow{\TMV}{\TMV} \\
     \EMV  & \Coloneqq & x \mid \ELam{x}{\TMV}{\EMV} \mid \EAp{\EMV}{\EMV}
-            \mid           \ENumMV \mid \ETrue \mid \EFalse
+    \mid                   \ENumMV \mid \ETrue \mid \EFalse \mid \EIf{\EMV}{\EMV}{\EMV}
   \end{array}\]
 
   \pause
@@ -20,9 +20,18 @@
   %
   \pause
   \[\begin{array}{rl}
-    \ctxSyn{\ctx}{\EMV}{\TMV} & \textsc{\small(synthesis)} \\ \pause
-    \ctxAna{\ctx}{\EMV}{\TMV} & \textsc{\small(analysis)}
+    \ctxSyn{\ctx}{\EMV}{\TMV} & \text{\small ($\EMV$ synthesizes type $\TMV$)} \\
+    \ctxAna{\ctx}{\EMV}{\TMV} & \text{\small ($\EMV$ analyzes against type $\TMV$)}
   \end{array}\]
+  \pause
+  *We need only the \emph{static semantics} for ill-typed programs!
+
+  \note[item]{For the purposes of this short tutorial, we'll start with a small gradually typed lambda
+    calculus}
+  \note[item]{with a standard bidirectional type system}
+  \note[item]{Now, we have here the unknown type, but in fact it's necessary as we'll see for
+    ill-typed programs only, and we require then only the static semantics of the gradually typed
+    lambda calculus}
 \end{frame}
 
 \begin{frame}[fragile]{Typing variable occurrences}
@@ -35,9 +44,14 @@
     }
   \]%
 
-  \pause
-  \pause
-  But what if $\notInCtx{\ctx}{x}$?
+  \uncover<3->{
+    But what if $\notInCtx{\ctx}{x}$?
+  }
+
+  \note[item]{In our standard bidirectional type system, we would probably have a rule that looks
+    like this incomplete one for synthesizing the type of a variable occurrence}
+  \note[item]{We can conclude, of course, that x synthesizes tau if we have the pair in the context}
+  \note[item]{OK, that's all well and good, but what if x isn't in scope?}
 \end{frame}
 
 \begin{frame}[fragile]
@@ -57,6 +71,8 @@ let rec syn ctx e =
   \only<2>{Option 1: don't be ridiculous, that's impossible}
   \only<3>{Option 2: uh oh, not my problem}
   \only<4>{Option 3: uh oh, not my problem but \emph{gracefully}}
+
+  \note[item]{This failure case poses a problem if we were to try implementing this rule}
 \end{frame}
 
 \begin{frame}[fragile]

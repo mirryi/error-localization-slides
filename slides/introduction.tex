@@ -1,54 +1,39 @@
-\begin{frame}{Nowadays\ldots}
-  \pause
-  \begin{itemize}
-    \item We program with high-level abstractions \\ \pause
-      but these abstractions can be complex!
+\begin{frame}{Reality check}
+  \begin{center}
+    \large
+    Most of the code we write is \\ \pause \textbf{ill-typed}
+  \end{center}
 
-      \pause
-    \item We rely on help from our editors \\ \pause
-      which provide \emph{rich semantic services}!
-
-      \pause
-    \item We write a lot of ill-formed code \\ \pause
-      so services must be \emph{error-resilient}!
-  \end{itemize}
-
-  \note[item]{So nowadays, in this, well---I'd say we're now firmly in the middle of the 3rd decade of the
-    21st century---we program with high-level abstractions\ldots}
-  \note[item]{but these abstractions can be pretty complex, right?}
-  \note[item]{As a result, we rely on quite a bit of help from editors and other tooling}
-  \note[item]{because they provide these rich semantic services such as code completion or automated
-    refactoring}
-  \note[item]{Now, the problem is, a lot of our code is ill-formed in some way---in fact, most of
-    the time, the code we're writing is hardly complete, so it's probably wrong somehow}
-  \note[item]{This means that these services have to be able to handle our bad code, or resilient to errors}
+  \note[item]{The reality is that most of the code we write is ill-typed}
+  \note[item]{In fact, most of the time, we're still in the midst of typing out the darn thing, so
+    naturally it's probably very ill-typed indeed}
+  \note[item]{Or think about that time you changed an important data type or function signature and
+    spent the next several hours or days fixing the rest of your code---these ill-typed states can
+    persist for a long time}
 \end{frame}
 
-\begin{frame}{Error localization and recovery}
-  As programmers, we want tools that can \\[1em]
+\begin{frame}{Localization and recovery}
+  As programmers, we want tooling can \\[1em]
 
   \pause
   \begin{itemize}
-    \item describe \emph{what} and \emph{where} the errors are \pause (\emph{localization})
+    \item \textbf{localize type errors}\pause: describe \emph{what} and \emph{where} they are
 
       \pause
-    \item and, even when an error is encountered,
-      continue on and find other errors \pause (\emph{recovery})
+    \item \textbf{recover}: even when an error is encountered,
+      continue to provision downstream services and find other errors
   \end{itemize}
 
-  \vspace{1em}
-  \pause
-  \textbf{Our focus:} \emph{type} error localization and recovery!
-
-  \note[item]{This is what we're concerned about in this talk---tools that are resilient to
-    errors, and in particular that means}
-  \note[item]{that they can tell us what the error is and where it is in our code. We call this
-    localization}
+  \note[item]{For these reasons we hope, or rather expect, our editor services and tooling to be
+    able to cope with our ill-typed code}
+  \note[item]{In particular that means we expect them to}
+  \note[item]{first of all, localize type errors, or tell us what and where they are in our code}
   \note[item]{and, even in the face of errors, recover optimistically to continue doing what it's
     doing and find other errors, ideally with minimal loss in service---recovery}
-  \note[item]{As the title of the talk suggests, we're concerned in particular today about these
-    two notions as they pertain to \emph{type} errors}
 \end{frame}
+
+\newcommand<>{\localized}[1]{\alt#2{\goodcolor{Red}{\underset{\bm{\wedge}}{#1}}}{#1}}
+\newcommand<>{\localizedAux}[1]{\alt#2{\goodcolor{Emerald}{\underset{\bm{\wedge}}{#1}}}{#1}}
 
 \begin{frame}[fragile, t]{Observations in practice}
   \begin{center}
@@ -56,9 +41,9 @@
       \ELet{f}{\ELam{b}{\TBool}{\cdots}}{\pause
         \ELet{x}
           {\EIf{\ETrue}
-               {\onderset<9>{\goodcolor{Emerald}{\bm{\wedge}}}{\onderset<7>{\goodcolor{Red}{\bm{\wedge}}}{\ENum{5}}}}
-               {\onderset<4-5,6,8,9>{\goodcolor{Red}{\bm{\wedge}}}{\EFalse}}}
-          {\pause\EAp{f}{\onderset<5,6>{\goodcolor{Red}{\wedge}}{x}}}
+               {\localizedAux<9>{\localized<7>{\ENum{5}}}}
+               {\localized<4-5,6,8,9>{\EFalse}}}
+          {\pause\EAp{f}{\localized<5,6>{x}}}
       }
     $%
   \end{center}
@@ -147,25 +132,18 @@ main.cpp:1:50: \textcolor{red}{\textbf{error:}} inconsistent deduction for auto 
     types at play}
   \note[item]{and together, upstream error localization decisions, once recovered from, can
     influence downstream decisions}
-  \note[item]{We think, therefore, that this subject would benefit from rigorous treatment.
-    Unfortunately, in theory\ldots}
-\end{frame}
-
-\begin{frame}{\ldots\ in theory}
-  \begin{center}
-    \Large
-    $\Gamma \vdash e : \tau$
-  \end{center}
-
-  \note[item]{In theory, our type systems generally look like some variation of this}
-  \note[item]{that is, they give rules for when terms are well-typed}
+  \note[item]{We think, therefore, that this subject would benefit greatly from rigorous treatment.}
+  \note[item]{Unfortunately, our current developments in theory don't reflect this reality}
 \end{frame}
 
 \begin{frame}{A definitional gap problem}
   \begin{center}
-    Most of the code we write is \emph{ill-formed}\pause,
+    Most of the code we write is \emph{ill-typed}\pause,
     but conventional language definitions
-    \emph{only specify the behaviour of well-formed programs}.
+    \emph{only specify the behaviour of well-typed programs}. \\[0.5em]
+
+    \pause
+    $\Gamma \vdash e : \tau$
   \end{center}
   \pause
   \[%
@@ -177,56 +155,63 @@ main.cpp:1:50: \textcolor{red}{\textbf{error:}} inconsistent deduction for auto 
     the program is meaningless \textcolor{Red}{\textbf{everywhere}}.
   \end{center}
 
-  \note[item]{Unfortunately, most of the code we write isn't well-formed in this way, but ill-formed}
-  \note[item]{but our conventional language definitions only give semantics for well-formed programs}
+  \note[item]{Most of the code we write is ill-typed, but conventional language definitions are only
+    concerned with the semantics of well-typed programs}
+  \note[item]{This is made most obvious by the fact that our type systems look generally like some
+    variation of this judgment form}
   \note[item]{So if a type error appears anywhere}
-  \note[item]{as far as the specifications are concerned, the program becomes meaningless as a whole}
+  \note[item]{as far as the specification are concerned, the program becomes meaningless as a whole}
 \end{frame}
 
 \begin{frame}{The goal}
-  We'd like a way to \emph{formally} specify type checkers that are capable of localizing and
-  recovering from errors
+  We'd like a way to formally specify type checkers that are capable of localizing and recovering
+  from errors \\[1em]
 
-  \vspace{1em}
   \pause
-  \begin{emphbox}{Guiding principle\uncover<4->{ (totality)}}
+  \begin{emphbox}{Totality}
     \pause
-    These typing semantics should describe \\
-    \emph{all syntactically well-formed programs}.
+    These semantics should describe \emph{both well-typed and ill-typed programs}.
   \end{emphbox}
 
   \note[item]{We'd like a way to alleviate this, by being able to create precise specifications for
-    the semantics of these ill-typed programs}
-  \note[item]{in particular, formal specifications for how to handle type errors and recover in
-    spite of them}
-  \note[item]{And these type checker semantics should describe all syntactically well-formed
+    the typing semantics of these ill-typed programs, localizing and recovering from type errors along
+    the way}
+  \note[item]{And these type checker semantics should describe both well-typed and ill-typed
     programs}
   \note[item]{This notion we'll call totality}
 \end{frame}
 
 \begin{frame}{This paper is about\ldots}
+  \pause
+  Uniting \emph{local} and \emph{global} type inference for principled total type error localization and
+  recovery: \\[1em]
+
   \begin{itemize}
-    \item<1-> the \textbf{marked lambda calculus}%
-      \uncover<2->{%
-        : a judgmental framework for \onderline<3->{total} \onderline<4->{bidirectional}
-        type error localization and recovery%
+    \item<3-> the \textbf{marked lambda calculus}%
+      \uncover<4->{%
+        : a judgmental framework for bidirectional type error localization and recovery%
       }
 
     \item<5-> \textbf{type hole inference}%
       \uncover<6->{%
         : a global, constraint-based system \\
         \uncover<7->{
-          that is \emph{gradual} and \emph{neutral} in error localization and recovery
+          that is neutral in error localization and recovery
         }
       }
   \end{itemize}
 
-  \note[item]{So this paper is about, first of all, the marked lambda calculus}
-  \note[item]{a judgmental framework for doing these things in a bidirectional fashion}
-  \note[item]{The emphasis is on total, and}
-  \note[item]{we choose bidirectional systems as our starting point because it creates a flow of
-  typing data that is conducive to intuitive error localization}
-  \note[item]{Then, we'll describe how to layer type hole inference, a global constraint-based
-    inference system atop the marked lambda calculus in a way that allows us to neatly combine the
-    bidirectional and unification approaches for even better localization}
+  \note[item]{In this work, we've developed techniques to achieve total type error localization and
+    recovery}
+  \note[item]{by elegantly blending local and global type inference}
+  \note[item]{For the former, we present in tutorial-style the marked lambda calculus}
+  \note[item]{a judgmental framework for type error localization and recovery for bidirectional type
+    systems}
+  \note[item]{We choose bidirectional systems as our starting point because it creates a flow of
+    typing data that is conducive to intuitive error localization}
+  \note[item]{Then, we'll describe how to layer a global constraint-based inference system atop the
+    marked lambda calculus in a way that allows us to neatly combine the bidirectional and
+    unification approaches for even better localization}
+  \note[item]{While these two paradigms have been often thought of as opposing or alternative
+    techniques, in this talk we'll hopefully see how they supplement each other}
 \end{frame}
