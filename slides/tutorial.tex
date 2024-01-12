@@ -70,9 +70,19 @@ let rec syn ctx e =
   \only<1>{\phantom{Option 1}}
   \only<2>{Option 1: don't be ridiculous, that's impossible}
   \only<3>{Option 2: uh oh, not my problem}
-  \only<4>{Option 3: uh oh, not my problem but \emph{gracefully}}
+  \only<4>{Option 3: uh oh, not my problem but explicitly}
 
   \note[item]{This failure case poses a problem if we were to try implementing this rule}
+  \note[item]{An implementation of type synthesis in OCaml might look something like this code}
+  \note[item]{where we thread a typing context and lookup variable occurrences}
+  \note[item]{The None case corresponds exactly to being unable to satisfy the premise, and it's not
+    immediately obvious what we should do}
+  \note[item]{We could crash, though I don't think anyone would be very happy about this}
+  \note[item]{More realistically, we might throw an exception with a diagnostic and leave it to the
+    caller to handle}
+  \note[item]{or similarly by returning an error value}
+  \note[item]{In either case, we've aborted the type-checking early at the first error, and this
+    just isn't going to cut it}
 \end{frame}
 
 \begin{frame}[fragile]
@@ -83,6 +93,10 @@ let rec syn ctx e =
 
   \pause
   \textbf{Solution.} $\TUnknown$ \pause \hspace{1em} $\leftarrow$ unknown type
+
+  \note[item]{At this point, we've localized the error successfully}
+  \note[item]{But how can we recover?}
+  \note[item]{You've probably guessed it by now, but we'll do so via the unknown type}
 \end{frame}
 
 \begin{frame}[fragile]{From type checking to marking}
@@ -102,6 +116,12 @@ let rec syn ctx e =
       \pause
     \item use the unknown type to encapsulate missing type information
   \end{itemize}
+
+  \note[item]{The idea is to augment the type checking process with marking}
+  \note[item]{where we localize and report errors by adding marks}
+  \note[item]{which intuitively correspond to compiler diagnostics or editor decorations}
+  \note[item]{Then, we'll use the unknown type, which provides exactly the right mechanisms via
+    the consistency relation to recover in a principled manner}
 \end{frame}
 
 \begin{frame}[fragile]{A two-layer calculus}
@@ -124,23 +144,34 @@ let rec syn ctx e =
 
   \pause
   $\ECFree{x}$ is a \emph{marked term} denoting a free occurrence of $x$
+
+  \note[item]{We'll take the original syntax, which we call unmarked, and add the aforementioned
+    error marks}
+  \note[item]{For now, we've only a single error mark that denotes exactly the variable is free}
+  \note[item]{In this talk and paper, all the error marks are given by fancy parentheses and a
+    subscript in red, but it's important to remember that these are only symbolic representations of
+    actual error diagnostics!}
+  \note[item]{The box subscript here corresponds to the error of a free variable}
 \end{frame}
 
 \begin{frame}[fragile]
   Extend the original typing judgments
   \[\begin{array}{rl}
-    \ctxSyn{\ctx}{\EMV}{\TMV} & \textsc{\small(synthesis)} \\
-    \ctxAna{\ctx}{\EMV}{\TMV} & \textsc{\small(analysis)}
+    \ctxSyn{\ctx}{\EMV}{\TMV} & \text{\small ($\EMV$ synthesizes type $\TMV$)} \\
+    \ctxAna{\ctx}{\EMV}{\TMV} & \text{\small ($\EMV$ analyzes against type $\TMV$)}
   \end{array}\]
 
   \pause
   into the bidirectional \textbf{marking judgments}:
-
   \pause
   \[\begin{array}{rl}
-    \ctxSynFixedInto{\ctx}{\EMV}{\ECMV}{\TMV} & \textsc{\small(marking synthesis)} \\ \pause
-    \ctxAnaFixedInto{\ctx}{\EMV}{\ECMV}{\TMV} & \textsc{\small(marking analysis)}
+    \ctxSynFixedInto{\ctx}{\EMV}{\ECMV}{\TMV} & \text{{\small ($\EMV$ is marked into $\ECMV$ and synthesizes type $\TMV$)}} \\ \pause
+    \ctxAnaFixedInto{\ctx}{\EMV}{\ECMV}{\TMV} & \text{{\small ($\EMV$ is marked into $\ECMV$ and analyzes against type $\TMV$)}}
   \end{array}\]
+
+  \note[item]{Now, we'll extend the original typing judgments into marking judgments}
+  \note[item]{where unmarked expressions are marked into marked expressions}
+  \note[item]{These now are the judgments that express the error-localizing and recovering type-checking process}
 \end{frame}
 
 \begin{frame}[fragile]{Marking free variables}
@@ -156,21 +187,29 @@ let rec syn ctx e =
   becomes two synthetic marking rules: 
   \begin{mathpar}
     \uncover<2->{
-    \inferrule[MKSVar]{
-      \inCtx{\ctx}{x}{\TMV}
-    }{
-      \ctxSynFixedInto{\ctx}{x}{x}{\TMV}
-    }
+      \inferrule[MKSVar]{
+        \inCtx{\ctx}{x}{\TMV}
+      }{
+        \ctxSynFixedInto{\ctx}{x}{x}{\TMV}
+      }
     }
 
     \uncover<3->{
-    \inferrule[MKSFree]{
-      \notInCtx{\ctx}{x}
-    }{
-      \uncover<3->{\ctxSynFixedInto{\ctx}{x}{\uncover<4->{\ECFree{x}}}{\uncover<5->{\TUnknown}}}
-    }
+      \inferrule[MKSFree]{
+        \notInCtx{\ctx}{x}
+      }{
+        \uncover<3->{\ctxSynFixedInto{\ctx}{x}{\uncover<4->{\ECFree{x}}}{\uncover<5->{\TUnknown}}}
+      }
     }
   \end{mathpar}
+
+  \note[item]{It's hopefully straightforward to see how we can determine the rules for the marking
+    judgments}
+  \note[item]{Thinking about both the success and failure cases, our synthetic typing rule for
+    variables becomes two synthetic marking rules}
+  \note[item]{In the success case we don't need to mark any errors}
+  \note[item]{And in the failure case we'll mark x with the free variable mark and synthesize the
+    unknown type}
 \end{frame}
 
 \begin{frame}[fragile]{A total marking}
