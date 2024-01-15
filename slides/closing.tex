@@ -4,7 +4,7 @@
   \pause
   \begin{itemize}
     \item \emph{marked lambda calculus}: \\
-      a general recipe for local type error localization and recovery
+      a general recipe for formally describing local type error localization and recovery
 
       \pause
     \item \emph{type hole inference}: \\
@@ -14,6 +14,15 @@
   \vspace{1em}
   \pause
   Consider using these techniques for your next language!
+
+  \note[item]{Hopefully, we've seen how the bidirectional and unification approaches are not
+  necessarily opposing or alternatives, but can be elegantly blended}
+  \note[item]{To review, our contributions of the marked lambda calculus gives a general recipe for
+    formally specifying typing semantics that localize and recover from local type errors}
+  \note[item]{and type hole inference gives a workflow to handle these global inconsistencies}
+
+  \note[item]{Consider using these techniques when designing your next language, or tooling or
+    editor support for your next language}
 \end{frame}
 
 \begin{frame}{More in the paper and artifact}
@@ -47,4 +56,21 @@
       \textcolor{BrickRed}{\small[\href{https://hazel.org}{hazel.org}]}
       \textcolor{MidnightBlue}{\small[\href{https://github.com/hazelgrove/hazel}{hazelgrove/hazel}]}
   \end{itemize}
+
+  \note[item]{There is, of course, more in the paper}
+  \note[item]{We give a complete development of the marked lambda calculus for the language of this
+    presentation additionally with products}
+  \note[item]{and provide the full metatheory}
+  \note[item]{which is also mechanized in Agda}
+  \note[item]{We explore extensions to richer typing features, specifically developing semantics for
+  System F-style parametric polymorphism and destructuring lets}
+  \note[item]{We also discuss connections to structured editing, specifically the Hazelnut
+  structured editing calculus on which Hazel is based}
+  \note[item]{The paper also includes a more thorough discussion of type hole inference that we've
+  brushed over today}
+  \note[item]{We discuss further expansions of the workflow when empty expression holes are added}
+  \note[item]{and how polymorphic generalization would work in this system}
+
+  \note[item]{And, we have implementations of both in Hazel}
+  \note[item]{Thanks!}
 \end{frame}

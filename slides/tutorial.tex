@@ -18,7 +18,6 @@
 
   \hphantom{\textbf{Start:} }with a standard bidirectional type system
   %
-  \pause
   \[\begin{array}{rl}
     \ctxSyn{\ctx}{\EMV}{\TMV} & \text{\small ($\EMV$ synthesizes type $\TMV$)} \\
     \ctxAna{\ctx}{\EMV}{\TMV} & \text{\small ($\EMV$ analyzes against type $\TMV$)}
@@ -73,7 +72,7 @@ let rec syn ctx e =
   \only<4>{Option 3: uh oh, not my problem but explicitly}
 
   \note[item]{This failure case poses a problem if we were to try implementing this rule}
-  \note[item]{An implementation of type synthesis in OCaml might look something like this code}
+  \note[item]{An implementation of type synthesis might look something like this OCaml code}
   \note[item]{where we thread a typing context and lookup variable occurrences}
   \note[item]{The None case corresponds exactly to being unable to satisfy the premise, and it's not
     immediately obvious what we should do}
@@ -82,11 +81,11 @@ let rec syn ctx e =
     caller to handle}
   \note[item]{or similarly by returning an error value}
   \note[item]{In either case, we've aborted the type-checking early at the first error, and this
-    just isn't going to cut it}
+    just isn't going to cut it for us 21st century folk}
 \end{frame}
 
 \begin{frame}[fragile]
-  We've \emph{localized} the error: \pause ``this occurrence of $x$ is unbound!'' \\[1em]
+  We've \emph{localized} the error: ``this occurrence of $x$ is unbound!'' \\[1em]
 
   \pause
   How can we \emph{recover}? \\[1em]
@@ -94,9 +93,10 @@ let rec syn ctx e =
   \pause
   \textbf{Solution.} $\TUnknown$ \pause \hspace{1em} $\leftarrow$ unknown type
 
-  \note[item]{At this point, we've localized the error successfully}
+  \note[item]{At this point, we've successfully localized the error}
   \note[item]{But how can we recover?}
-  \note[item]{You've probably guessed it by now, but we'll do so via the unknown type}
+  \note[item]{Given what I said early, and the fact that this session is all about gradual typing,
+    you've probably guessed it by now, but we'll do so via the unknown type}
 \end{frame}
 
 \begin{frame}[fragile]{From type checking to marking}
@@ -150,7 +150,8 @@ let rec syn ctx e =
   \note[item]{In this talk and paper, all the error marks are given by fancy parentheses and a
     subscript in red, but it's important to remember that these are only symbolic representations of
     actual error diagnostics!}
-  \note[item]{The box subscript here corresponds to the error of a free variable}
+  \note[item]{The box subscript here is fairly arbitrary and just indicates that the variable is
+    free}
 \end{frame}
 
 \begin{frame}[fragile]
@@ -162,15 +163,15 @@ let rec syn ctx e =
 
   \pause
   into the bidirectional \textbf{marking judgments}:
-  \pause
   \[\begin{array}{rl}
-    \ctxSynFixedInto{\ctx}{\EMV}{\ECMV}{\TMV} & \text{{\small ($\EMV$ is marked into $\ECMV$ and synthesizes type $\TMV$)}} \\ \pause
+    \ctxSynFixedInto{\ctx}{\EMV}{\ECMV}{\TMV} & \text{{\small ($\EMV$ is marked into $\ECMV$ and synthesizes type $\TMV$)}} \\
     \ctxAnaFixedInto{\ctx}{\EMV}{\ECMV}{\TMV} & \text{{\small ($\EMV$ is marked into $\ECMV$ and analyzes against type $\TMV$)}}
   \end{array}\]
 
   \note[item]{Now, we'll extend the original typing judgments into marking judgments}
-  \note[item]{where unmarked expressions are marked into marked expressions}
-  \note[item]{These now are the judgments that express the error-localizing and recovering type-checking process}
+  \note[item]{where unmarked terms are marked into marked terms}
+  \note[item]{These now are the judgments that express the error-localizing and recovering
+    type-checking process}
 \end{frame}
 
 \begin{frame}[fragile]{Marking free variables}
@@ -208,7 +209,7 @@ let rec syn ctx e =
     variables becomes two synthetic marking rules}
   \note[item]{In the success case we don't need to mark any errors}
   \note[item]{And in the failure case we'll mark x with the free variable mark and synthesize the
-    unknown type}
+    unknown type, since we don't know anything about it}
 \end{frame}
 
 \begin{frame}[fragile]{Marking local inconsistencies}
@@ -234,10 +235,10 @@ let rec syn ctx e =
     }
   \end{mathpar}
 
-  \note[item]{Another common error occurs when some expression's type doesn't match the type that's
+  \note[item]{Another common error occurs when some term's type doesn't match the type that's
     expected}
-  \note[item]{In a bidirectional system, this would occur most commonly when trying to applying a
-    subsumption principle like the own shown}
+  \note[item]{In a bidirectional system, this would occur most commonly when trying to apply a
+    subsumption principle like the one shown}
   \note[item]{We can straightforwardly derive a similar-looking marking rule}
 \end{frame}
 
@@ -272,8 +273,8 @@ let rec syn ctx e =
   \note[item]{And, just as last time, we add a new mark denoting this type error}
   \note[item]{Then, it's again straightforward to derive the second rule}
   \note[item]{In this example above, this rule would mark true as expected}
-  \note[item]{Hopefully, this gives you a sense of how this framework works}
-  \note[item]{To continue the development for our minimal language, we would follow this pattern}
+  \note[item]{Hopefully, these two examples gives you a sense of how this framework works}
+  \note[item]{To continue the development for our minimal language, we would simply follow this pattern}
 \end{frame}
 
 \begin{frame}{\ldots\ and the rest}
@@ -295,16 +296,16 @@ let rec syn ctx e =
   \note[item]{a lambda analyzed against some type that doesn't match an arrow type}
   \note[item]{a lambda analyzed against some matched arrow type whose domain is inconsistent with the ascription $\TMV$}
   \note[item]{an application where the left side doesn't synthesize a matched arrow type}
-  \note[item]{and a conditional where the branches synthesize inconsistent types, as in the example at the very beginning of this talk}
-  \note[item]{The first three are similar in flavor to the inconsistent types mark we just saw, but
-    we've given them separately because of some minute differences}
-  \note[item]{With this development in place, we should be wondering how we know this recipe has
-    given us the right rules and that we haven't made a mistake}
+  \note[item]{and a conditional where the branches synthesize inconsistent types, as in the example
+    at the very beginning of this talk}
+  \note[item]{The first two are similar in flavor to the inconsistent types mark we just saw, but
+    we've given them separately because we have more information in these cases}
+  \note[item]{With this development in place, we should be wondering now, how we know this recipe
+    has given us the right rules and that we haven't made a mistake?}
 \end{frame}
 
 \begin{frame}[fragile]{A total marking}
   \begin{emphbox}{Totality}
-    \pause
     These semantics should describe \emph{both well-typed and ill-typed programs}.
   \end{emphbox}
   %
@@ -314,7 +315,6 @@ let rec syn ctx e =
   \end{center}
 
   \begin{emphbox}{Theorem 2.1. Totality}
-    \pause
     For all $\ctx$ and $\EMV$,
       $\exists \ECMV, \TMV$
         s.t. $\ctxSynFixedInto{\ctx}{\EMV}{\ECMV}{\TMV}$. \\
@@ -325,10 +325,10 @@ let rec syn ctx e =
 
   \note[item]{From the start I mentioned that a notion of totality would guide us, and now we can
     formally state it to ensure we haven't missed any rules}
-  \note[item]{The theorem states that for every unmarked expression, we should be able to prove that
-    it can marked synthetically and analytically}
+  \note[item]{The theorem states that for every unmarked expression, we should be able to mark it
+    both synthetically and analytically}
   \note[item]{Of course, there's an accompanying theorem that requires that marking gives only one
-    result}
+    result, as one would hope}
 \end{frame}
 
 \begin{frame}[fragile]
@@ -354,21 +354,21 @@ let rec syn ctx e =
   \end{emphbox}
 
   \note[item]{Secondly, it also makes sense to define the typing semantics of the marked syntax,
-    since it's the marked language that we would use to provision downstream type-based semantic
-    services}
+    which we denote with the M subscript under the turnstile}
+  \note[item]{since it's the marked language that we would use to provision downstream type-based
+    semantic services}
   \note[item]{In practice, these rules basically match the marking rules in 1-1 translation, and
     we'd build them up as we go}
-  \note[item]{It's also important that the marking process doesn't deform the syntax except by
-    adding marks}
-  \note[item]{Given by the box superscript, the mark erasure operation converts a marked expression
-    back to an unmarked by erasing types}
+  \note[item]{Also, we've a mark erasure operation denoted by the square superscript that converts a
+    marked expression back to an unmarked one by erasing marks}
   \note[item]{Now, this metatheorem requires that marking produces marked terms that are well-typed
     and that erasing marks gives us what we started with}
+  \note[item]{i.e., the marking process doesn't deform the syntax except by adding marks}
 
   \note[item]{Thirdly, we would also like that marking doesn't introduce any error marks on
     well-typed terms, which we state by a markless judgment}
   \note[item]{A corresponding pair of statements for ill-typed terms would demand that they not be
-    markless}
+    markless after marking}
 \end{frame}
 
 \begin{frame}[fragile]{The marked lambda calculus, altogether}
@@ -427,8 +427,8 @@ let rec syn ctx e =
     unknown type for marking ill-typed programs}
   \note[item]{Systematically considering the success and failure cases of each typing rule, we saw
     how we can derive the marking rules}
-  \note[item]{And all the decisions about how to actually localize and mark were along the way by
-    us, the language designers}
+  \note[item]{And all the decisions about how to actually localize and mark were made along the way
+    by us, the language designers}
   \note[item]{The framework doesn't prescribe a particular localization strategy; we make no claims
     about having the only or best way to localize errors}
   \note[item]{We're just giving the judgmental tools to formally describe how you're localizing}

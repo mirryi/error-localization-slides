@@ -5,7 +5,9 @@
     Most of the code we write is \\ \textbf{ill-typed}
   \end{center}
 
-  \note[item]{The reality is that most of the code we write is ill-typed}
+  \note[item]{And maybe it's when we might be dozing off from the great lunch on Friday afternoon
+    that we need a reality check}
+  \note[item]{And the reality is that most of the code we write is ill-typed}
   \note[item]{In fact, most of the time, we're still in the midst of typing out the darn thing, so
     naturally it's probably very ill-typed indeed}
   \note[item]{Or think about that time you changed an important data type or function signature and
@@ -30,54 +32,42 @@
   \note[item]{In particular that means we expect them to}
   \note[item]{first of all, localize type errors, or tell us what and where they are in our code}
   \note[item]{and, even in the face of errors, recover optimistically to continue doing what it's
-    doing and find other errors, ideally with minimal loss in service---recovery}
+    doing and find other errors, ideally with minimal loss in service}
+  \note[item]{Naturally, this problem has garnered plenty of practical interest, and we can see
+    that production tooling supports some form of localization and recovery capability.}
 \end{frame}
 
-\newcommand<>{\localized}[1]{\alt#2{\goodcolor{Red}{\underset{\bm{\wedge}}{#1}}}{#1}}
-\newcommand<>{\localizedAux}[1]{\alt#2{\goodcolor{Emerald}{\underset{\bm{\wedge}}{#1}}}{#1}}
+\newcommand<>{\localized}[1]{\alt#2{\fboxsep=2pt\samesizecolorbox{Red!30}{$#1$}}{#1}}
+\newcommand<>{\localizedAux}[1]{\alt#2{\fboxsep=2pt\samesizecolorbox{Emerald!30}{$#1$}}{#1}}
 
 \begin{frame}[fragile, t]{Observations in practice}
   \begin{center}
     $%
       \ELet{f}{\ELam{b}{\TBool}{\cdots}}{\pause
         \ELet{x}
-          {\EIf{\ETrue}
-               {\localizedAux<9>{\localized<7>{\ENum{5}}}}
-               {\localized<4-5,6,8,9>{\EFalse}}}
-          {\pause\EAp{f}{\localized<5,6>{x}}}
+          {\localized<8>{\EIf{\ETrue}
+               {\localizedAux<7>{\localized<6>{\ENum{5}}}}
+               {\localized<4-5,7>{\EFalse}}}}
+          {\pause\EAp{f}{\localized<5>{x}}}
       }
     $%
   \end{center}
-  \vspace{-18pt}
+  % \vspace{-18pt}
   \begin{semiverbatim}\small\only<4-5>{
-1 | let x = if true then 5 else false in f x
+1 | let x = if true then 5 else \textcolor{red}{\textbf{false}} in f x
                                 \textcolor{red}{^^^^^}
-\textcolor{red}{\textbf{Error}}: This expression has type bool but an expression
-         was expected of type int
-     \uncover<5>{
-1 | let x = if true then 5 else false in f x
+\textcolor{red}{\textbf{Error}}: This expression \textbf{has type bool} but an expression
+         was \textbf{expected of type int}
+     \only<5>{
+1 | let x = if true then 5 else false in f \textcolor{red}{\textbf{x}}
                                            \textcolor{red}{^}
-\textcolor{red}{\textbf{Error}}: This expression has type int but an expression
-         was expected of type bool}}\only<6>{
-Main.hs:4:26: \textbf{\textcolor{red}{error}:} \textbf{[\textcolor{red}{GHC-39999}]}
-    • Couldn't match expected type ‘Int’ with actual type ‘Bool’
-  |
-4 | _ = let x = if True then (5::Int) else \textcolor{red}{\textbf{False}} in f x
-  |                                        \textcolor{red}{\textbf{^^^^^}}
-    • Couldn't match expected type ‘Bool’ with actual type ‘Int’
-  |
-4 | _ = let x = if True then (5::Int) else False in f \textcolor{red}{\textbf{x}}
-  |                                                   \textcolor{red}{\textbf{^}}}\only<7>{
-Main.hs:4:26: \textbf{\textcolor{red}{error}:} \textbf{[\textcolor{red}{GHC-39999}]}
-    • No instance for ‘Num Bool’ arising from the literal ‘5’
+\textcolor{red}{\textbf{Error}}: This expression \textbf{has type int} but an expression
+         was \textbf{expected of type bool}}}\only<6>{
+Main.hs:4:26: \textbf{\textcolor{red}{error}:} [GHC-39999]
+    • \textbf{No instance for ‘Num Bool’ arising from the literal ‘5’}
   |
 4 | _ = let x = if True then \textcolor{red}{\textbf{5}} else False in f x
-  |                          \textcolor{red}{\textbf{^}}}\only<8>{
-main.cpp:1:50: \textcolor{red}{\textbf{error:}} inconsistent deduction for auto return type:
-                      ‘int’ and then ‘bool’
-    1 | auto x() { if (true) { return 5; } else { return \textcolor{red}{\textbf{false}}; } }
-      |                                              \textcolor{red}{\textbf{^~~~~}}
-    2 | auto y = f(x())}\only<9>{
+  |                          \textcolor{red}{\textbf{^}}}\only<7>{
 \textbf{\textcolor{red}{error[E0308]}: `if` and `else` have incompatible types}
  --> src/main.rs:2:30
   |
@@ -87,27 +77,33 @@ main.cpp:1:50: \textcolor{red}{\textbf{error:}} inconsistent deduction for auto 
   |                  \textcolor{Emerald}{\textbf{expected because of this}}}
   \end{semiverbatim}
 
-  \note[item]<1-3>{Since being able to localize and recover from errors is pretty important, this problem
-    has garnered plenty of practical interest, and we can see that production tooling supports some
-    form of localization and recovery capability.}
+  \only<8>{
+    \begin{center}
+      \includegraphics[width=0.9\linewidth]{media/inconsistent.png}
+      \includegraphics[width=0.9\linewidth]{media/inconsistent-ci.png}
+    \end{center}
+  }
+
   \note[item]<1-3>{Let's look for example at this program, in which we've a function f that takes a
     boolean---and does something}
   \note[item]<1-3>{x is determined by a conditional}
   \note[item]<1-3>{and f is applied to x}
   \note[item]<1-3>{We can immediately see that the branches of the conditional are mismatched wrt to
-    typing, so there should be some support of error diagnostic}
+    typing, so there should be some sort of error diagnostic}
   \note[item]<4->{and in fact if we throw this at the OCaml compiler, it says, yes, there is, and it's
     on the false, having prioritized the first branch's integer}
   \note[item]<4->{ocamlc will stop here, but merlin, which powers editor services nowadays, will also
     say that there's another error on the usage of x, since it's determined x to be an int but f takes
     a bool}
   \note[item]<4->{OK, that's all well and good, so what about Haskell?}
-  \note[item]<4->{It's in agreement with merlin here, though actually if we removed the explicit Int
-    annotation it would blame 5 for not being an instance of Num Bool}
-  \note[item]<4->{For C++ I've had to mangle the program a little but the idea is the same, and g++ is
-    also on the false but suggests more generally that we should look at earlier return statements
-    as well}
-  \note[item]<4->{Rust does similarly, but actually also marks part of the error on 5}
+  \note[item]<4->{Somewhat unexpectedly, it localizes the error to 5, complaining that it isn't an
+    instance of Num Bool---this is presumably because of how type inference works for the Num type
+    class}
+  \note[item]<4->{Rust is a little different in that it prioritizes the first branch like OCaml but
+    also suggests that the 5 is to blame}
+  \note[item]<4->{Hazel, the programming environment our group is building, is still different,
+    assigning the error to the entire conditional with the cursor inspector stating that the
+    branches are inconsistent}
 \end{frame}
 
 \begin{frame}
@@ -126,14 +122,16 @@ main.cpp:1:50: \textcolor{red}{\textbf{error:}} inconsistent deduction for auto 
   \end{itemize}
 
   \note[item]{Now obviously these languages all have different kinds of type systems, but from this
-    informal exercise we can observe that}
+    informal exercise we can observe that practical systems are type error-resilient to a
+    certain degree}
+  \note[item]{but}
   \note[item]{decisions about how to localize can vary, and often tools will try to guess users'
-    intentions when where to localize errors to}
+    intentions about where to localize errors to}
   \note[item]{Then, to recover, they have to somehow operate with incomplete knowledge about the
     types at play}
   \note[item]{and together, upstream error localization decisions, once recovered from, can
-    influence downstream decisions}
-  \note[item]{We think, therefore, that this subject would benefit greatly from rigorous treatment.}
+    influence downstream decisions, sometimes unexpectedly}
+  \note[item]{We think, therefore, that this subject would benefit greatly from rigorous treatment}
   \note[item]{Unfortunately, our current developments in theory don't reflect this reality}
 \end{frame}
 
@@ -170,7 +168,6 @@ main.cpp:1:50: \textcolor{red}{\textbf{error:}} inconsistent deduction for auto 
 
   \pause
   \begin{emphbox}{Totality}
-    \pause
     These semantics should describe \emph{both well-typed and ill-typed programs}.
   \end{emphbox}
 
@@ -179,7 +176,7 @@ main.cpp:1:50: \textcolor{red}{\textbf{error:}} inconsistent deduction for auto 
     the way}
   \note[item]{And these type checker semantics should describe both well-typed and ill-typed
     programs}
-  \note[item]{This notion we'll call totality}
+  \note[item]{This notion we'll call totality, and it'll serve as a sort of guiding principle}
 \end{frame}
 
 \begin{frame}{This paper is about\ldots}
@@ -196,9 +193,7 @@ main.cpp:1:50: \textcolor{red}{\textbf{error:}} inconsistent deduction for auto 
     \item<5-> \textbf{type hole inference}%
       \uncover<6->{%
         : a global, constraint-based system \\
-        \uncover<7->{
-          that is neutral in error localization and recovery
-        }
+        that is neutral in error localization and recovery
       }
   \end{itemize}
 
@@ -210,9 +205,9 @@ main.cpp:1:50: \textcolor{red}{\textbf{error:}} inconsistent deduction for auto 
     systems}
   \note[item]{We choose bidirectional systems as our starting point because it creates a flow of
     typing data that is conducive to intuitive error localization}
-  \note[item]{Then, we'll describe how to layer a global constraint-based inference system atop the
-    marked lambda calculus in a way that allows us to neatly combine the bidirectional and
-    unification approaches for even better localization}
+  \note[item]{Then, we'll describe type hole inference, or how to layer a global constraint-based
+    inference system atop the marked lambda calculus in a way that allows us to neatly combine the
+    bidirectional and unification approaches for even better localization}
   \note[item]{While these two paradigms have been often thought of as opposing or alternative
     techniques, in this talk we'll hopefully see how they supplement each other}
 \end{frame}

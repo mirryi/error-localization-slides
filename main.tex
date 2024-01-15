@@ -10,6 +10,7 @@
 \usepackage{csquotes}
 \usepackage{textcomp}
 \usepackage{listings}
+\usepackage{calc}
 
 \usepackage{amsmath}
 \usepackage{amssymb}
@@ -115,6 +116,8 @@
   base={#2},
   #1,
 }
+
+\newcommand{\samesizecolorbox}[2]{\makebox[\widthof{#2}]{\colorbox{#1}{#2}}}
 
 \lstloadlanguages{caml}
 \lstdefinestyle{OCaml}{%
@@ -249,8 +252,6 @@ continuation}\fi}}%
 
     \note[item]{Introduce myself, collaborators, advisor}
     \note[item]{Thanks for bearing with me in this last talk of the day}
-    \note[item]{I'll be talking about, as the title suggests, type errors, but first let's step back
-      and survey the current status quo}
   \end{frame}
 
 }
