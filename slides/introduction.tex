@@ -27,6 +27,10 @@
       continue to provision downstream services and find other errors
   \end{itemize}
 
+  \vspace{1em}
+  \ie, code completion, type hints, and other downstream services shouldn't suddenly all fail
+  because of one error!
+
   \note[item]{For these reasons we hope, or rather expect, our editor services and tooling to be
     able to cope with our ill-typed code}
   \note[item]{In particular that means we expect them to}
@@ -40,7 +44,13 @@
 \newcommand<>{\localized}[1]{\alt#2{\fboxsep=2pt\samesizecolorbox{Red!30}{$#1$}}{#1}}
 \newcommand<>{\localizedAux}[1]{\alt#2{\fboxsep=2pt\samesizecolorbox{Emerald!30}{$#1$}}{#1}}
 
-\begin{frame}[fragile, t]{Observations in practice}
+\begin{frame}[fragile, t]
+  \frametitle<1-3>{Observations in practice}
+  \frametitle<4-5>{OCaml: the first branch is right}
+  \frametitle<6>{Haskell: 5 is the problem}
+  \frametitle<7>{Rust: maybe 5 is also the problem?}
+  \frametitle<8>{Hazel: the whole thing's all messed up!}
+
   \begin{center}
     $%
       \ELet{f}{\ELam{b}{\TBool}{\cdots}}{\pause
@@ -52,7 +62,7 @@
       }
     $%
   \end{center}
-  % \vspace{-18pt}
+  %
   \begin{semiverbatim}\small\only<4-5>{
 1 | let x = if true then 5 else \textcolor{red}{\textbf{false}} in f x
                                 \textcolor{red}{^^^^^}
@@ -106,10 +116,9 @@ Main.hs:4:26: \textbf{\textcolor{red}{error}:} [GHC-39999]
     branches are inconsistent}
 \end{frame}
 
-\begin{frame}
-  Today's tooling is error-resilient to a certain degree\pause, but
+\begin{frame}{Observations in practice}
+  Today's tooling is error-resilient to a certain degree\pause, but \\[1em]
 
-  \vspace{1em}
   \pause
   \begin{itemize}
     \item localization can be varied\pause, often guessing about \emph{user intent}

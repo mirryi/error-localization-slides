@@ -1,4 +1,4 @@
-\begin{frame}{Marking \underline{global} inconsistencies}
+\begin{frame}{Marking global inconsistencies?}
   Consider this program:
   \[%
     \ELam{f}{\TUnknown}{\EAp{f}{(\EPlus{f}{1})}}
@@ -107,52 +107,7 @@
     details of constraint generation and this solving process in the paper}
 \end{frame}
 
-% \begin{frame}
-  % \[%
-    % \ELam{f}{\TUnknown^{\Id{1}}}{\EAp{f}}{(\EPlus{f}{1})}
-  % \]%
-
-  % \uncover<2->{
-    % yields the constraints
-    % \[%
-      % \{ \onderset<6>{\cursor}{\constrain{\TUnknown^{\Id{1}}}{\TArrow{\TUnknown^{\ProvIn{\Id{1}}}}{\TUnknown^{\ProvOut{\Id{1}}}}}}
-       % \only<3->{, \onderset<7>{\cursor}{\constrain{\TNum}{\TUnknown^{\Id{1}}}}}
-       % \only<4->{, \onderset<8>{\cursor}{\constrain{\TNum}{\TUnknown^{\ProvIn{\Id{1}}}}}} \}
-    % \]%
-  % }
-  
-  % \vspace{-1em}
-  % \uncover<5->{
-    % and solving gives
-    % \[%
-      % \PTS(\TUnknown^{\Id{1}})
-        % =
-      % \Alt<6->{
-        % \Alt<7->{
-          % \Alt<8->{
-            % \{ \TArrow{\{ \onderline<8>{\TNum} \}}{\{ \TUnknown^{\ProvOut{\Id{1}}} \}},
-               % \TNum \}
-          % }{
-            % \{ \TArrow{\{ \TUnknown^{\ProvIn{\Id{1}}} \}}{\{ \TUnknown^{\ProvOut{\Id{1}}} \}},
-             % \underline{\TNum} \}
-          % }
-        % }{
-          % \{ \underline{\TArrow{\{ \TUnknown^{\ProvIn{\Id{1}}} \}}{\{ \TUnknown^{\ProvOut{\Id{1}}} \}}} \}
-        % }
-      % }{
-        % \{ \}
-      % }
-    % \]%
-  % }
-
-  % \vspace{-1em}
-  % \onslide<9->{
-    % Two \emph{potential fillings} of $\TUnknown^{\Id{1}}$ are $\TArrow{\TNum}{\TUnknown}$ and
-    % $\TNum$\onslide<10->{, which is more than one; inconsistent constraints!}
-  % }
-% \end{frame}
-
-\begin{frame}[fragile]
+\begin{frame}[fragile, t]
   \begin{center}
     \alt<2->{
       \alt<3->{
@@ -175,12 +130,15 @@
     }
   \end{center}
 
-  Hazel \textcolor{BrickRed}{\small[\href{https://hazel.org}{hazel.org}]}
-  offers the user ability to fill either in
+  \begin{center}
+    \small
+    Play around with this at
+    \textcolor{MidnightBlue}{[\url{https://hazel.org/build/thi-old-engine-with-merge}]}
+  \end{center}
 
   \begin{tikzpicture}[remember picture,overlay]
-    \node[xshift=-4.6cm, yshift=-5cm, visible on=<2>] at (current page.north east) { \mousePointer };
-    \node[xshift=-2.3cm, yshift=-5cm, visible on=<3>] at (current page.north east) { \mousePointer };
+    \node[xshift=-4.6cm, yshift=-4.7cm, visible on=<2>] at (current page.north east) { \mousePointer };
+    \node[xshift=-2.3cm, yshift=-4.7cm, visible on=<3>] at (current page.north east) { \mousePointer };
   \end{tikzpicture}
 
   \note[item]{Taking the same example from earlier into Hazel with type hole inference, we can see

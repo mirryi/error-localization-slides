@@ -28,6 +28,8 @@
   \note[item]{For the purposes of this short tutorial, we'll start with a small gradually typed lambda
     calculus}
   \note[item]{with a standard bidirectional type system}
+  \note[item]{where synthesis corresponds to inferring the type of a term from its syntax}
+  \note[item]{and analysis is checking a term against an expected type.}
   \note[item]{Now, we have here the unknown type, but in fact it's necessary as we'll see for
     ill-typed programs only, and we require then only the static semantics of the gradually typed
     lambda calculus}
@@ -37,7 +39,7 @@
   Synthesizing the type of a variable is standard:
   \[%
     \inferrule[SVar]{
-      \uncover<2->{\colorbox{highlight}{\inCtx{\ctx}{x}{\TMV}}}
+      \uncover<2->{\samesizecolorbox{highlight}{\inCtx{\ctx}{x}{\TMV}}}
     }{
       \ctxSyn{\ctx}{x}{\TMV}
     }
@@ -68,14 +70,12 @@ let rec syn ctx e =
 
   \only<1>{\phantom{Option 1}}
   \only<2>{Option 1: don't be ridiculous, that's impossible}
-  \only<3>{Option 2: uh oh, not my problem}
-  \only<4>{Option 3: uh oh, not my problem but explicitly}
+  \only<3-4>{Option 2: uh oh, not my problem}
 
-  \note[item]{This failure case poses a problem if we were to try implementing this rule}
-  \note[item]{An implementation of type synthesis might look something like this OCaml code}
-  \note[item]{where we thread a typing context and lookup variable occurrences}
-  \note[item]{The None case corresponds exactly to being unable to satisfy the premise, and it's not
-    immediately obvious what we should do}
+  \note[item]{This failure case poses a problem if we were to try implementing this rule, which like
+    look something like this OCaml code}
+  \note[item]{The None case of the variable lookup corresponds exactly to being unable to satisfy
+    the premise, and it's not immediately obvious what we should do}
   \note[item]{We could crash, though I don't think anyone would be very happy about this}
   \note[item]{More realistically, we might throw an exception with a diagnostic and leave it to the
     caller to handle}
@@ -115,6 +115,27 @@ let rec syn ctx e =
 
       \pause
     \item use the unknown type to encapsulate missing type information
+      %
+      \begin{mathpar}
+        \inferrule{ }{
+          \consistent{\TUnknown}{\TMV}
+        }
+
+        \inferrule{ }{
+          \consistent{\TMV}{\TUnknown}
+        }
+
+        \inferrule{ }{
+          \consistent{\TMV}{\TMV}
+        }
+
+        \inferrule{
+          \consistent{\TMV_1}{\TMV_1'} \\
+          \consistent{\TMV_2}{\TMV_2'} \\
+        }{
+          \consistent{\TArrow{\TMV_1}{\TMV_2}}{\TArrow{\TMV_1'}{\TMV_2'}}
+        }
+      \end{mathpar}
   \end{itemize}
 
   \note[item]{The idea is to augment the type checking process with marking}
@@ -125,7 +146,7 @@ let rec syn ctx e =
 \end{frame}
 
 \begin{frame}[fragile]{A two-layer calculus}
-  Supplement the \emph{unmarked} surface syntax
+  Supplement the \emph{unmarked} syntax
   %
   \[\begin{array}{rcl}
     \TMV  & \Coloneqq & \TUnknown \mid \TNum \mid \TBool \mid \TArrow{\TMV}{\TMV} \\
@@ -137,21 +158,29 @@ let rec syn ctx e =
   into a \emph{marked} one that contains \emph{error marks}:
   \[\begin{array}{rcl}
     \ECMV & \Coloneqq & x \mid \ECLam{x}{\TMV}{\ECMV} \mid \ECAp{\ECMV}{\ECMV}
-            \mid           \ENumMV \mid \ETrue \mid \EFalse \mid \EIf{\EMV}{\EMV}{\EMV}
-            \mid           \ECFree{x}
+            \mid           \ENumMV \mid \ECTrue \mid \ECFalse \mid \ECIf{\ECMV}{\ECMV}{\ECMV}
+            \mid           \samesizecolorbox{highlight}{\ECFree{x}}
   \end{array}\]
-
-  \pause
-  $\ECFree{x}$ is a \emph{marked term} denoting a free occurrence of $x$
 
   \note[item]{We'll take the original syntax, which we call unmarked, and add the aforementioned
     error marks}
   \note[item]{For now, we've only a single error mark that denotes exactly the variable is free}
-  \note[item]{In this talk and paper, all the error marks are given by fancy parentheses and a
-    subscript in red, but it's important to remember that these are only symbolic representations of
-    actual error diagnostics!}
+\end{frame}
+
+\begin{frame}
+  $\ECFree{x}$ is a \emph{marked term} denoting a free occurrence of $x$ \\[1em]
+
+  \begin{itemize}
+    \item Subscripts were chosen fairly arbitrarily
+
+    \item Purely a symbolic representation of an actual error diagnostic!
+  \end{itemize}
+
   \note[item]{The box subscript here is fairly arbitrary and just indicates that the variable is
     free}
+  \note[item]{And in general, all the error marks are given by fancy parentheses and a subscript in
+    red, but it's important to remember that these are only symbolic representations of actual error
+    diagnostics!}
 \end{frame}
 
 \begin{frame}[fragile]
@@ -168,10 +197,14 @@ let rec syn ctx e =
     \ctxAnaFixedInto{\ctx}{\EMV}{\ECMV}{\TMV} & \text{{\small ($\EMV$ is marked into $\ECMV$ and analyzes against type $\TMV$)}}
   \end{array}\]
 
+  \pause
+  Type-based semantic services use marked terms!
+
   \note[item]{Now, we'll extend the original typing judgments into marking judgments}
   \note[item]{where unmarked terms are marked into marked terms}
   \note[item]{These now are the judgments that express the error-localizing and recovering
     type-checking process}
+  \note[item]{Downstream services dependent on type information will use these marked terms}
 \end{frame}
 
 \begin{frame}[fragile]{Marking free variables}
@@ -203,9 +236,7 @@ let rec syn ctx e =
     }
   \end{mathpar}
 
-  \note[item]{It's hopefully straightforward to see how we can determine the rules for the marking
-    judgments}
-  \note[item]{Thinking about both the success and failure cases, our synthetic typing rule for
+  \note[item]{Now, thinking about both the success and failure cases, our synthetic typing rule for
     variables becomes two synthetic marking rules}
   \note[item]{In the success case we don't need to mark any errors}
   \note[item]{And in the failure case we'll mark x with the free variable mark and synthesize the
@@ -243,12 +274,11 @@ let rec syn ctx e =
 \end{frame}
 
 \begin{frame}
-  What if $\inconsistent{\TMV}{\TMV'}$, \eg, in
-  $\ELam{f}{\TArrow{\TNum}{\TNum}}{\EAp{f}{\alt<4->{\ECInconType{\ETrue}}{\ETrue}}}$?
+  What if $\inconsistent{\TMV}{\TMV'}$, \eg, in $\EPlus{\ENum{5}}{\alt<4->{\ECInconType{\ETrue}}{\ETrue}}$?
 
   \pause
   \[%
-    \ECMV \Coloneqq \cdots \mid \ECFree{x} \mid \colorbox{highlight}{\ECInconType{\ECMV}}
+    \ECMV \Coloneqq \cdots \mid \ECFree{x} \mid \samesizecolorbox{highlight}{\ECInconType{\ECMV}}
   \]%
 
   \pause
@@ -280,26 +310,22 @@ let rec syn ctx e =
 \begin{frame}{\ldots\ and the rest}
   \[\begin{array}{rcll}
     \EMV  & \Coloneqq & \cdots \\
-                      & \mid         & \ECLamAnaNonMatchedArrow{x}{\TMV}{\ECMV}
-                      & \uncover<+->{\text{\small analyzed against a non-arrow type*}} \\
-          & \mid         & \ECLamInconAsc{x}{\TMV}{\ECMV}
-                      & \uncover<+->{\textup{\small ascription inconsistent with domain*}} \\
+          &           & \text{\small \emph{synthesis}} \\
           & \mid         & \ECApSynNonMatchedArrow{\ECMV_1}{\ECMV_2}
-                      & \uncover<+->{\textup{\small $\ECMV_1$ synthesizes non-matched arrow type}} \\
+                      & \textup{\small $\ECMV_1$ synthesizes non-matched arrow type} \\
           & \mid         & \ECInconBr{\ECMV_1}{\ECMV_2}{\ECMV_3}
-                      & \uncover<+->{\textup{\small $\ECMV_2$ and $\ECMV_2$ synthesize inconsistent types}} \\
+                      & \textup{\small branches synthesize inconsistent types} \\
+          &           & \text{\small \emph{analysis}} \\
+          & \mid         & \ECLamAnaNonMatchedArrow{x}{\TMV}{\ECMV}
+                      & \text{\small against a non-matched arrow type} \\
+          & \mid         & \ECLamInconAsc{x}{\TMV}{\ECMV}
+                      & \textup{\small ascription inconsistent with domain} \\
   \end{array}\]
 
-  \uncover<+->{*Like $\ECInconType{\ECMV}$, but more specific}
-
-  \note[item]{And it turns out you would need this set of marks, which indicate}
-  \note[item]{a lambda analyzed against some type that doesn't match an arrow type}
-  \note[item]{a lambda analyzed against some matched arrow type whose domain is inconsistent with the ascription $\TMV$}
-  \note[item]{an application where the left side doesn't synthesize a matched arrow type}
-  \note[item]{and a conditional where the branches synthesize inconsistent types, as in the example
-    at the very beginning of this talk}
-  \note[item]{The first two are similar in flavor to the inconsistent types mark we just saw, but
-    we've given them separately because we have more information in these cases}
+  \note[item]{And it turns out you would need this set of marks, which cover the remaining failure
+    cases that would arise during type checking}
+  \note[item]{For the sake of time, I won't cover them---you can find their full development in the
+    paper}
   \note[item]{With this development in place, we should be wondering now, how we know this recipe
     has given us the right rules and that we haven't made a mistake?}
 \end{frame}
@@ -308,19 +334,20 @@ let rec syn ctx e =
   \begin{emphbox}{Totality}
     These semantics should describe \emph{both well-typed and ill-typed programs}.
   \end{emphbox}
-  %
+  \vspace{-1em}
   \pause
   \begin{center}
     $\bm{\Downarrow}$
   \end{center}
-
+  \vspace{-1em}
   \begin{emphbox}{Theorem 2.1. Totality}
     For all $\ctx$ and $\EMV$,
       $\exists \ECMV, \TMV$
         s.t. $\ctxSynFixedInto{\ctx}{\EMV}{\ECMV}{\TMV}$. \\
     For all $\ctx$, $\EMV$, and $\TMV$,
       $\exists \ECMV$
-        s.t. $\ctxAnaFixedInto{\ctx}{\EMV}{\ECMV}{\TMV}$.
+        s.t. $\ctxAnaFixedInto{\ctx}{\EMV}{\ECMV}{\TMV}$. \\
+    \textcolor{Black!50}{(Every unmarked term can be marked under any context!)}
   \end{emphbox}
 
   \note[item]{From the start I mentioned that a notion of totality would guide us, and now we can
@@ -338,7 +365,8 @@ let rec syn ctx e =
         and $\erasesTo{\ECMV}{\EMV}$. \\
     If $\ctxAnaFixedInto{\ctx}{\EMV}{\ECMV}{\TMV}$,
       then $\ctxAnaTypeM{\ctx}{\ECMV}{\TMV}$
-        and $\erasesTo{\ECMV}{\EMV}$.
+        and $\erasesTo{\ECMV}{\EMV}$. \\
+    \textcolor{Black!50}{(Marking doesn't deform the syntax except by adding marks!)}
   \end{emphbox}
 
   \pause
@@ -351,6 +379,7 @@ let rec syn ctx e =
       then $\exists \ECMV$
         s.t. $\ctxAnaFixedInto{\ctx}{\EMV}{\ECMV}{\TMV}$
         and $\markless{\ECMV}$.
+    \textcolor{Black!50}{(Marking well-typed terms introduces no marks!)}
   \end{emphbox}
 
   \note[item]{Secondly, it also makes sense to define the typing semantics of the marked syntax,
@@ -385,7 +414,6 @@ let rec syn ctx e =
             $\ctxAnaTypeM{\ctx}{\ECMV}{\TMV}$}}
     \arrow["{}"{name=0, anchor=center, inner sep=0}, color={\colorMKText}, curve={height=-40pt}, from=1-1, to=3-3]
     \arrow["{\erase{\_}}", curve={height=-40pt}, from=3-3, to=1-1]
-    % \arrow[color={Black!50}, -, from=0, to=1-3]
   \end{tikzcd}\]
 
   \note[item]{Putting these pieces together, we can view marking as a total transformation that
@@ -394,7 +422,7 @@ let rec syn ctx e =
   \note[item]{The well-formedness theorem is then described by this identity loop}
 \end{frame}
 
-\begin{frame}[fragile]{The recipe}
+\begin{frame}[fragile]{The Recipe}
   \begin{itemize}
     \item Begin with a bidirectional gradually* typed language
       %
