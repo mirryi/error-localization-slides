@@ -52,7 +52,8 @@
   \note[item]{In our standard bidirectional type system, we would probably have a rule that looks
     like this incomplete one for synthesizing the type of a variable occurrence}
   \note[item]{We can conclude, of course, that x synthesizes tau if we have the pair in the context}
-  \note[item]{OK, that's all well and good, but what if x isn't in scope?}
+  \note[item]{OK, that's all well and good, but---and this is where totality comes in---what if x
+    isn't in scope?}
 \end{frame}
 
 \begin{frame}[fragile]
@@ -115,28 +116,28 @@ let rec syn ctx e =
 
       \pause
     \item use the unknown type to encapsulate missing type information
-      %
-      \begin{mathpar}
-        \inferrule{ }{
-          \consistent{\TUnknown}{\TMV}
-        }
-
-        \inferrule{ }{
-          \consistent{\TMV}{\TUnknown}
-        }
-
-        \inferrule{ }{
-          \consistent{\TMV}{\TMV}
-        }
-
-        \inferrule{
-          \consistent{\TMV_1}{\TMV_1'} \\
-          \consistent{\TMV_2}{\TMV_2'} \\
-        }{
-          \consistent{\TArrow{\TMV_1}{\TMV_2}}{\TArrow{\TMV_1'}{\TMV_2'}}
-        }
-      \end{mathpar}
   \end{itemize}
+
+  \begin{mathpar}
+    \inferrule{ }{
+      \consistent{\TUnknown}{\TMV}
+    }
+
+    \inferrule{ }{
+      \consistent{\TMV}{\TUnknown}
+    }
+
+    \inferrule{ }{
+      \consistent{\TMV}{\TMV}
+    }
+
+    \inferrule{
+      \consistent{\TMV_1}{\TMV_1'} \\
+      \consistent{\TMV_2}{\TMV_2'} \\
+    }{
+      \consistent{\TArrow{\TMV_1}{\TMV_2}}{\TArrow{\TMV_1'}{\TMV_2'}}
+    }
+  \end{mathpar}
 
   \note[item]{The idea is to augment the type checking process with marking}
   \note[item]{where we localize and report errors by adding marks}
@@ -163,8 +164,8 @@ let rec syn ctx e =
   \end{array}\]
 
   \note[item]{We'll take the original syntax, which we call unmarked, and add the aforementioned
-    error marks}
-  \note[item]{For now, we've only a single error mark that denotes exactly the variable is free}
+    error marks, which are given by fancy parentheses and a subscript in red, but they're just
+    symbolic representations of actual error messages}
 \end{frame}
 
 \begin{frame}
@@ -176,11 +177,9 @@ let rec syn ctx e =
     \item Purely a symbolic representation of an actual error diagnostic!
   \end{itemize}
 
+  \note[item]{For now, we've only a single error mark that denotes exactly the variable is free}
   \note[item]{The box subscript here is fairly arbitrary and just indicates that the variable is
     free}
-  \note[item]{And in general, all the error marks are given by fancy parentheses and a subscript in
-    red, but it's important to remember that these are only symbolic representations of actual error
-    diagnostics!}
 \end{frame}
 
 \begin{frame}[fragile]
@@ -302,7 +301,6 @@ let rec syn ctx e =
     of when the types aren't consistent}
   \note[item]{And, just as last time, we add a new mark denoting this type error}
   \note[item]{Then, it's again straightforward to derive the second rule}
-  \note[item]{In this example above, this rule would mark true as expected}
   \note[item]{Hopefully, these two examples gives you a sense of how this framework works}
   \note[item]{To continue the development for our minimal language, we would simply follow this pattern}
 \end{frame}
@@ -382,10 +380,8 @@ let rec syn ctx e =
     \textcolor{Black!50}{(Marking well-typed terms introduces no marks!)}
   \end{emphbox}
 
-  \note[item]{Secondly, it also makes sense to define the typing semantics of the marked syntax,
-    which we denote with the M subscript under the turnstile}
-  \note[item]{since it's the marked language that we would use to provision downstream type-based
-    semantic services}
+  \note[item]{Secondly, since marked terms are used to provision downstream services, it makes sense
+    to define a typing semantics for them, which we denote with the M under the turnstile}
   \note[item]{In practice, these rules basically match the marking rules in 1-1 translation, and
     we'd build them up as we go}
   \note[item]{Also, we've a mark erasure operation denoted by the square superscript that converts a
@@ -396,8 +392,8 @@ let rec syn ctx e =
 
   \note[item]{Thirdly, we would also like that marking doesn't introduce any error marks on
     well-typed terms, which we state by a markless judgment}
-  \note[item]{A corresponding pair of statements for ill-typed terms would demand that they not be
-    markless after marking}
+  \note[item]{There'd be a corresponding statement for ill-typed terms, which should have at least
+    one mark}
 \end{frame}
 
 \begin{frame}[fragile]{The marked lambda calculus, altogether}
