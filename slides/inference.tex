@@ -23,9 +23,12 @@
     everything we'd like}
   \note[item]{In this program, the type of f is given to be unknown, so the bidirectional system
     would operate gradually and results in no marks}
-  \note[item]{But we notice that it's used a function and a number}
-  \note[item]{We think, well, some sort of global, constraint-based inference system would have
-    caught this!}
+  \note[item]{But we notice that it's used a function and a number simultaneously, which isn't
+    possible}
+  \note[item]{In other ways, there's no way to replace the unknown type, or type hole as well we
+    call them, with a known type}
+  \note[item]{And anyway we think, well, some sort of global, constraint-based inference system
+    would have caught this!}
 \end{frame}
 
 \begin{frame}{Layers upon layers}
@@ -37,22 +40,21 @@
     \item The marked lambda calculus localizes and recovers predictably from \emph{local inconsistencies}
 
       \pause
-    \item \textbf{Type hole inference} solves and marks \emph{global inconsistencies}
+    \item \textbf{Type hole inference} solves and marks \emph{global inconsistencies} 
 
       \pause
       \begin{itemize}
-        \item Not meant to be a standalone type checker
         \item Downstream service to supplement the marked lambda calculus
       \end{itemize}
   \end{itemize}
 
   \note[item]{In the second part of this paper, we describe how we can the best of both worlds by
     layering a constraint-based inference system atop the marked lambda calculus}
-  \note[item]{So the marked lambda calculus provides local inference with error localization and recovery}
-  \note[item]{And the type hole inference, which would operate on the marked terms, solves and marks
+  \note[item]{Where the latter provides local inference with error localization and recovery}
+  \note[item]{And type hole inference operates on the marked terms to solve and mark
     global inconsistencies like the one in the example}
-  \note[item]{It's important to note that this isn't meant to be a standalone type checker, but
-    rather a sort of downstream service to supplement the bidirectional system}
+  \note[item]{Rather than being a standalone type checker, this is meant to be a downstream service
+    to supplement the marked lambda calculus}
 \end{frame}
 
 \newcommand{\Id}[1]{\ensuremath{\goodcolor{hole}{#1}}}
@@ -64,48 +66,7 @@
 \newcommand{\PTS}{\operatorname{\mathsf{PotentialTypeSet}}}
 \newcommand{\cursor}{\ensuremath{\goodcolor{\colorOkSideJudge}{\bm{\wedge}}}}
 
-\begin{frame}{Type hole inference}
-  \begin{itemize}
-    \item Occurrences of $\TUnknown$ arise from
-      \pause (1) \emph{type holes}, \eg, in $\ELam{x}{\TUnknown}{\cdots}$ \\
-      \pause or (2) error marks
-
-      \pause
-    \item Gather constraints from the bidirectional system\pause,
-      treating occurrences of $\TUnknown$ as unification variables
-      {\footnotesize\parencite{siek2008}}
-
-      \pause
-    \item Solve them via unification whilst maintaining partial solutions
-      %
-      \pause
-      \begin{itemize}
-        \item When solvable, proceeds as normal unification
-
-          \pause
-        \item When unsolvable, accumulates sets of all potential type \emph{fillings}, inferred from
-          constraints, for each unknown type
-      \end{itemize}
-  \end{itemize}
-
-  \note[item]{We observe that any occurrences of the unknown type arise from either these explicit
-    annotations, which we call type holes because it's supposed that the programmer will eventually
-    want to fill them in with some known type}
-  \note[item]{We'll see how type hole inference facilitates this workflow}
-  \note[item]{Or, the error marks that arise during marking}
-  \note[item]{To describe type hole inference at a high level, we gather constraints bidirectionally
-    from the marked syntax}
-  \note[item]{and treat any occurrences of unknown as unification variables in the standard way}
-  \note[item]{Then, we'll solve these constraints}
-  \note[item]{and when they're solvable, we'll proceed as normal to find the substitution that can
-    satisfy all the constraints}
-  \note[item]{However, when there are inconsistent constraints, the system gracefully degrades to
-    maintain partial solutions by accumulating the potential type fillings for each unknown type}
-  \note[item]{Let's just see how this manifests in our implementation in Hazel---you can find the
-    details of constraint generation and this solving process in the paper}
-\end{frame}
-
-\begin{frame}[fragile, t]
+\begin{frame}[fragile, t]{Type hole inference in Hazel}
   \begin{center}
     \alt<2->{
       \alt<3->{
@@ -129,9 +90,8 @@
   \end{center}
 
   \begin{center}
-    \small
-    Play around with this at
-    \textcolor{MidnightBlue}{[\url{https://hazel.org/build/thi-old-engine-with-merge}]}
+    Try it out at \\
+    \textcolor{MidnightBlue}{[\url{https://hazel.org/build/thi}]}
   \end{center}
 
   \begin{tikzpicture}[remember picture,overlay]
@@ -139,12 +99,17 @@
     \node[xshift=-2.3cm, yshift=-4.7cm, visible on=<3>] at (current page.north east) { \mousePointer };
   \end{tikzpicture}
 
-  \note[item]{Taking the same example from earlier into Hazel with type hole inference, we can see
-    that when we hover onto the type hole, the cursor inspector tells us that there are conflicting
-    constraints}
-  \note[item]{which demand that f be an Int and an Int -> ? at the same time}
-  \note[item]{because f is an operand of +, and it's being applied to the result of +}
-  \note[item]{We have the option of selecting either one by clicking,}
+  \note[item]{Without getting into the weeds of how exactly it all works, let's take the
+    previous example into Hazel with type hole inference}
+  \note[item]{When unification is able to solve the constraints, things proceed as normal to find
+    the appropriate substitution}
+  \note[item]{However, like here, when unsolvable, the system degrades gracefully to maintain
+    partial solutions by accumulating the possible type fillings}
+  \note[item]{Notice that the system has marked the unknown type, the type hole here as unsolvable}
+  \note[item]{and the cursor inspector tells us that the constraints demand f be both an int and int
+    -> unknown}
+  \note[item]{Instead of failing, type hole inference offers both possible fillings to the user, and
+    if we hover over each, we can preview and then click to select the one we want}
   \note[item]{and by hovering over them, the code updates to show what would happen if we chose each
     one}
   \note[item]{When we hover over Int, it fills Int into the type hole, and now the application of f

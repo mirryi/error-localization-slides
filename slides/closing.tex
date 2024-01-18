@@ -1,30 +1,3 @@
-\begin{frame}{Bidirectional and unification, together}
-  The two systems supplement each other: \\[1em]
-
-  \pause
-  \begin{itemize}
-    \item \emph{marked lambda calculus}: \\
-      a general recipe for formally describing local type error localization and recovery
-
-      \pause
-    \item \emph{type hole inference}: \\
-      a workflow for handling globally inconsistent constraints
-  \end{itemize}
-
-  \vspace{1em}
-  \pause
-  Consider using these techniques for your next language!
-
-  \note[item]{Hopefully, we've seen how the bidirectional and unification approaches are not
-  necessarily opposing or alternatives, but can be elegantly blended}
-  \note[item]{To review, our contributions of the marked lambda calculus gives a general recipe for
-    formally specifying typing semantics that localize and recover from local type errors}
-  \note[item]{and type hole inference gives a workflow to handle these global inconsistencies}
-
-  \note[item]{Consider using these techniques when designing your next language, or tooling or
-    editor support for your next language}
-\end{frame}
-
 \begin{frame}[fragile]{More in the paper and artifact}
   \begin{tikzpicture}[remember picture,overlay]
     \node[xshift=-1.3cm,yshift=-1.3cm] at (current page.north east)
@@ -35,11 +8,12 @@
   
   \vspace{-1em}
   \begin{itemize}
+    \setlength\itemsep{1.5ex}
     \item A full description of the marked lambda calculus\pause, and
 
       \begin{itemize}
-        \item full metatheory\pause, also mechanized
-          \textcolor{MidnightBlue}{[\href{https://github.com/hazelgrove/error-localization-agda}{hazelgrove/error-localization-agda}]}
+        \item mechanization in Agda
+          \textcolor{MidnightBlue}{[\href{https://github.com/hazelgrove/error-localization-agda}{hazelgrove/error-localization-agda}]} \ 
 
           \pause
         \item extensions to richer typing features \\ \pause
@@ -65,19 +39,14 @@
       \textcolor{MidnightBlue}{\small[\href{https://github.com/hazelgrove/hazel}{hazelgrove/hazel}]}
   \end{itemize}
 
-  \note[item]{There is, of course, more in the paper}
-  \note[item]{We give a complete development of the marked lambda calculus for the language of this
-    presentation additionally with products}
-  \note[item]{and provide the full metatheory}
-  \note[item]{which is also mechanized in Agda}
-  \note[item]{We explore extensions to richer typing features, specifically developing semantics for
-  System F-style parametric polymorphism and destructuring lets}
-  \note[item]{We also discuss connections to structured editing, specifically the Hazelnut
-  structured editing calculus on which Hazel is based}
-  \note[item]{The paper also includes a more thorough discussion of type hole inference that we've
-  brushed over today}
-  \note[item]{We discuss further expansions of the workflow when empty expression holes are added}
-  \note[item]{and how polymorphic generalization would work in this system}
-  \note[item]{And, we have implementations of both in Hazel}
+  \pause
+  \vspace{1em}
+  Consider using these techniques for your next language!
+
+  \note[item]{There is, of course, more in the paper and our artifact, which you should check out}
+  \note[item]{Please, consider trying these techniques when designing your next language, or tooling
+    or editor support for your next language!}
+  \note[item]{If nothing else, we hope this work spurs more work on the semantics of ill-typed
+    programs}
   \note[item]{Thanks!}
 \end{frame}

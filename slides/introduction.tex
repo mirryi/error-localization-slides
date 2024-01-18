@@ -28,6 +28,7 @@
   \end{itemize}
 
   \vspace{1em}
+  \pause
   \ie, code completion, type hints, and other downstream services shouldn't suddenly all fail
   because of one error!
 
@@ -37,6 +38,8 @@
   \note[item]{first of all, localize type errors, or tell us what and where they are in our code}
   \note[item]{and, even in the face of errors, recover optimistically to continue doing what it's
     doing and find other errors, ideally with minimal loss in service}
+  \note[item]{Code completion, for example, should be unavailable because I have a type error
+    somewhere!}
   \note[item]{Naturally, this problem has garnered plenty of practical interest, and we can see
     that production tooling supports some form of localization and recovery capability.}
 \end{frame}
@@ -148,7 +151,7 @@ Main.hs:4:26: \textbf{\textcolor{red}{error}:} [GHC-39999]
   \begin{center}
     Most of the code we write is \emph{ill-typed}\pause,
     but conventional language definitions
-    \emph{only specify the behaviour of well-typed programs}. \\[0.5em]
+    \emph{only specify the meaning of well-typed programs}. \\[0.5em]
 
     \pause
     $\Gamma \vdash e : \tau$
@@ -177,7 +180,7 @@ Main.hs:4:26: \textbf{\textcolor{red}{error}:} [GHC-39999]
 
   \pause
   \begin{emphbox}{Totality}
-    These semantics should describe \emph{both well-typed and ill-typed programs}.
+    These semantics should give meaning to \emph{all well-typed and ill-typed programs}.
   \end{emphbox}
 
   \note[item]{We'd like a way to alleviate this, by being able to create precise specifications for

@@ -82,7 +82,7 @@ let rec syn ctx e =
     caller to handle}
   \note[item]{or similarly by returning an error value}
   \note[item]{In either case, we've aborted the type-checking early at the first error, and this
-    just isn't going to cut it for us 21st century folk}
+    failure to recover just isn't going to cut it for us 21st century folk}
 \end{frame}
 
 \begin{frame}[fragile]
@@ -198,12 +198,16 @@ let rec syn ctx e =
 
   \pause
   Type-based semantic services use marked terms!
+  \[\begin{array}{rl}
+    \ctxSynTypeM{\ctx}{\ECMV}{\TMV} & \text{\small ($\ECMV$ synthesizes type $\TMV$)} \\
+    \ctxAnaTypeM{\ctx}{\ECMV}{\TMV} & \text{\small ($\ECMV$ analyzes against type $\TMV$)}
+  \end{array}\]
 
   \note[item]{Now, we'll extend the original typing judgments into marking judgments}
   \note[item]{where unmarked terms are marked into marked terms}
   \note[item]{These now are the judgments that express the error-localizing and recovering
     type-checking process}
-  \note[item]{Downstream services dependent on type information will use these marked terms}
+  \note[item]{Downstream services dependent on type information will use these typed marked terms}
 \end{frame}
 
 \begin{frame}[fragile]{Marking free variables}
@@ -273,7 +277,7 @@ let rec syn ctx e =
 \end{frame}
 
 \begin{frame}
-  What if $\inconsistent{\TMV}{\TMV'}$, \eg, in $\EPlus{\ENum{5}}{\alt<4->{\ECInconType{\ETrue}}{\ETrue}}$?
+  What if $\inconsistent{\TMV}{\TMV'}$, \eg, in $\EPlus{\ENum{5}}{\alt<4->{\fboxsep=1pt\samesizecolorbox{highlight}{\ECInconType{\ETrue}}}{\ETrue}}$?
 
   \pause
   \[%
@@ -301,6 +305,7 @@ let rec syn ctx e =
     of when the types aren't consistent}
   \note[item]{And, just as last time, we add a new mark denoting this type error}
   \note[item]{Then, it's again straightforward to derive the second rule}
+  \note[item]{which would mark true in this example like so}
   \note[item]{Hopefully, these two examples gives you a sense of how this framework works}
   \note[item]{To continue the development for our minimal language, we would simply follow this pattern}
 \end{frame}
@@ -308,14 +313,12 @@ let rec syn ctx e =
 \begin{frame}{\ldots\ and the rest}
   \[\begin{array}{rcll}
     \EMV  & \Coloneqq & \cdots \\
-          &           & \text{\small \emph{synthesis}} \\
           & \mid         & \ECApSynNonMatchedArrow{\ECMV_1}{\ECMV_2}
                       & \textup{\small $\ECMV_1$ synthesizes non-matched arrow type} \\
           & \mid         & \ECInconBr{\ECMV_1}{\ECMV_2}{\ECMV_3}
                       & \textup{\small branches synthesize inconsistent types} \\
-          &           & \text{\small \emph{analysis}} \\
           & \mid         & \ECLamAnaNonMatchedArrow{x}{\TMV}{\ECMV}
-                      & \text{\small against a non-matched arrow type} \\
+                      & \text{\small analysis against non-matched arrow type} \\
           & \mid         & \ECLamInconAsc{x}{\TMV}{\ECMV}
                       & \textup{\small ascription inconsistent with domain} \\
   \end{array}\]
@@ -330,7 +333,7 @@ let rec syn ctx e =
 
 \begin{frame}[fragile]{A total marking}
   \begin{emphbox}{Totality}
-    These semantics should describe \emph{both well-typed and ill-typed programs}.
+    These semantics should give meaning to \emph{all well-typed and ill-typed programs}.
   \end{emphbox}
   \vspace{-1em}
   \pause
@@ -356,66 +359,70 @@ let rec syn ctx e =
     result, as one would hope}
 \end{frame}
 
-\begin{frame}[fragile]
+\begin{frame}[fragile]{A sensible marking}
   \begin{emphbox}{Theorem 2.2. Well-Formedness}
     If $\ctxSynFixedInto{\ctx}{\EMV}{\ECMV}{\TMV}$,
       then $\ctxSynTypeM{\ctx}{\ECMV}{\TMV}$
-        and $\erasesTo{\ECMV}{\EMV}$. \\
+        and $\alt<2->{\fboxsep=1pt\samesizecolorbox{highlight}{\erasesTo{\ECMV}{\EMV}}}{\erasesTo{\ECMV}{\EMV}}$. \\
     If $\ctxAnaFixedInto{\ctx}{\EMV}{\ECMV}{\TMV}$,
       then $\ctxAnaTypeM{\ctx}{\ECMV}{\TMV}$
-        and $\erasesTo{\ECMV}{\EMV}$. \\
-    \textcolor{Black!50}{(Marking doesn't deform the syntax except by adding marks!)}
+        and $\alt<2->{\fboxsep=1pt\samesizecolorbox{highlight}{\erasesTo{\ECMV}{\EMV}}}{\erasesTo{\ECMV}{\EMV}}$. \\
+    \textcolor{Black!50}{(Marking only adds marks, \ie, marking then erasing is identity!)}
   \end{emphbox}
 
-  \pause
+  \uncover<3->{
   \begin{emphbox}{Theorem 2.3(1). Well-Typed Terms}
     If $\ctxSynTypeU{\ctx}{\EMV}{\TMV}$,
       then $\exists \ECMV$
         s.t. $\ctxSynFixedInto{\ctx}{\EMV}{\ECMV}{\TMV}$
-        and $\markless{\ECMV}$. \\
+        and $\alt<4->{\fboxsep=1pt\samesizecolorbox{highlight}{\markless{\ECMV}}}{\markless{\ECMV}}$. \\
     If $\ctxAnaTypeU{\ctx}{\EMV}{\TMV}$,
       then $\exists \ECMV$
         s.t. $\ctxAnaFixedInto{\ctx}{\EMV}{\ECMV}{\TMV}$
-        and $\markless{\ECMV}$.
+        and $\alt<4->{\fboxsep=1pt\samesizecolorbox{highlight}{\markless{\ECMV}}}{\markless{\ECMV}}$.
     \textcolor{Black!50}{(Marking well-typed terms introduces no marks!)}
   \end{emphbox}
+  }
 
-  \note[item]{Secondly, since marked terms are used to provision downstream services, it makes sense
-    to define a typing semantics for them, which we denote with the M under the turnstile}
-  \note[item]{In practice, these rules basically match the marking rules in 1-1 translation, and
-    we'd build them up as we go}
-  \note[item]{Also, we've a mark erasure operation denoted by the square superscript that converts a
-    marked expression back to an unmarked one by erasing marks}
-  \note[item]{Now, this metatheorem requires that marking produces marked terms that are well-typed
-    and that erasing marks gives us what we started with}
-  \note[item]{i.e., the marking process doesn't deform the syntax except by adding marks}
-
-  \note[item]{Thirdly, we would also like that marking doesn't introduce any error marks on
+  \note[item]{Secondly, marking must not deform the syntax except by adding marks, and removing
+  these marks, which is given by this square superscript erasure operation, should give us back what we started with}
+  \note[item]{We'd would also like that marking doesn't introduce any error marks on
     well-typed terms, which we state by a markless judgment}
   \note[item]{There'd be a corresponding statement for ill-typed terms, which should have at least
     one mark}
 \end{frame}
 
-\begin{frame}[fragile]{The marked lambda calculus, altogether}
+\begin{frame}[fragile]
+  \vspace{-1em}
   % https://q.uiver.app/#q=WzAsMyxbMCwwLCJlIl0sWzIsMiwiXFxHYW1tYSBcXHZkYXNoIFxcY2hlY2t7ZX0gXFxSaWdodGFycm93IFxcdGF1IFxcXFwgXFxHYW1tYSBcXHZkYXNoIFxcY2hlY2t7ZX0gXFxMZWZ0YXJyb3cgXFx0YXUiXSxbMiwwLCJcXEdhbW1hIFxcdmRhc2ggZSBcXGxvb3BhcnJvd3JpZ2h0IFxcY2hlY2t7ZX0gXFxSaWdodGFycm93IFxcdGF1IFxcXFwgXFxHYW1tYSBcXHZkYXNoIGUgXFxsb29wYXJyb3dyaWdodCBcXGNoZWNre2V9IFxcTGVmdGFycm93IFxcdGF1Il0sWzAsMSwiIiwwLHsiY3VydmUiOi0zLCJjb2xvdXIiOlszMCw2MCw2MF19XSxbMCwyLCIiLDAseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkb3R0ZWQifX19XSxbMSwwLCJ7XFxffV57XFxzcXVhcmV9IiwwLHsiY3VydmUiOi0zLCJjb2xvdXIiOlswLDAsMjBdfSxbMCwwLDIwLDFdXSxbMywyLCIiLDAseyJzaG9ydGVuIjp7InNvdXJjZSI6MjB9LCJjb2xvdXIiOlswLDAsNDVdfV1d
   \newcommand{\mlnode}[1]{\begin{tabular}{@{}c@{}}#1\end{tabular}}
   \[\begin{tikzcd}[arrow style=tikz]
-    e && {\mlnode{
+         e
+      && {\mlnode{
+            \text{\textcolor{Black!50}{\small (\emph{marking})}} \\
             $\ctxSynFixedInto{\ctx}{\EMV}{\ECMV}{\TMV}$ \\
             $\ctxAnaFixedInto{\ctx}{\EMV}{\ECMV}{\TMV}$
           }} \\
-    \\
+      \\
       && {\mlnode{
             $\ctxSynTypeM{\ctx}{\ECMV}{\TMV}$ \\
-            $\ctxAnaTypeM{\ctx}{\ECMV}{\TMV}$}}
+            $\ctxAnaTypeM{\ctx}{\ECMV}{\TMV}$ \\
+            \text{\textcolor{Black!50}{\small (\emph{marked})}}}}
     \arrow["{}"{name=0, anchor=center, inner sep=0}, color={\colorMKText}, curve={height=-40pt}, from=1-1, to=3-3]
-    \arrow["{\erase{\_}}", curve={height=-40pt}, from=3-3, to=1-1]
+    \arrow["{\text{\textcolor{Black!50}{\small (\emph{erasure})} } \erase{\_}}", curve={height=-40pt}, from=3-3, to=1-1]
   \end{tikzcd}\]
 
-  \note[item]{Putting these pieces together, we can view marking as a total transformation that
+  \begin{center}
+    \small
+    Mechanized metatheory in Agda
+    \textcolor{MidnightBlue}{[\href{https://github.com/hazelgrove/error-localization-agda}{hazelgrove/error-localization-agda}]} \ 
+  \end{center}
+
+  \note[item]{Putting these pieces together, we can view marking as a total function that
     takes arbitrary terms of the unmarked syntax, well-typed or not, to well-typed terms of the marked
     syntax}
   \note[item]{The well-formedness theorem is then described by this identity loop}
+  \note[item]{All this metatheory, mechanized in Agda, can be found in our artifact}
 \end{frame}
 
 \begin{frame}[fragile]{The Recipe}
@@ -436,12 +443,11 @@ let rec syn ctx e =
       \end{itemize}
 
       \pause
-    \item \emph{Not} prescriptive \wrt{} localization strategy,\pause \eg,
+    \item \emph{Not} prescriptive \wrt{} localization strategy
       %
       \begin{itemize}
-        \item use different marks, localize somewhere else, etc.
-          \pause
-        \item extend the judgments to accumulate facts that inform localization decisions
+        \item We formalize three possible localization strategies for if-then-else with inconsistent
+          branches
       \end{itemize}
   \end{itemize}
 
@@ -456,8 +462,6 @@ let rec syn ctx e =
   \note[item]{The framework doesn't prescribe a particular localization strategy; we make no claims
     about having the only or best way to localize errors}
   \note[item]{We're just giving the judgmental tools to formally describe how you're localizing}
-  \note[item]{We could use different marks, which only symbolize the actual error messages, about
-    which we don't make any particular claims}
-  \note[item]{We could also easily extend the judgments to accumulate additional facts that inform
-    localization decisions}
+  \note[item]{In the paper, we actually formalize the various localization strategies we saw for
+    conditionals at the beginning of the talk}
 \end{frame}
