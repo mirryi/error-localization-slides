@@ -4,11 +4,9 @@
     \ELam{f}{\TUnknown}{\EAp{f}{(\EPlus{f}{1})}}
   \]%
 
-  \pause
   $\assignType{f}{\TUnknown}$, so the bidirectional system operates gradually, \pause
   but $f$ is 
   %
-  \pause
   \begin{enumerate}
     \item applied as a function \textcolor{Black!50}{(a function?)}
       \pause
@@ -53,8 +51,9 @@
   \note[item]{Where the latter provides local inference with error localization and recovery}
   \note[item]{And type hole inference operates on the marked terms to solve and mark
     global inconsistencies like the one in the example}
-  \note[item]{Rather than being a standalone type checker, this is meant to be a downstream service
-    to supplement the marked lambda calculus}
+  \note[item]{Rather than being a standalone type checker, this is an example of a downstream
+    service that uses the marked terms that result from marking and supplements the marked lambda
+    calculus}
 \end{frame}
 
 \newcommand{\Id}[1]{\ensuremath{\goodcolor{hole}{#1}}}
@@ -68,8 +67,8 @@
 
 \begin{frame}[fragile, t]{Type hole inference in Hazel}
   \begin{center}
-    \alt<2->{
-      \alt<3->{
+    \alt<6->{
+      \alt<7->{
         \includegraphics[width=0.9\textwidth]{inference-arrow.png}
       }{
         \includegraphics[width=0.9\textwidth]{inference-int.png}
@@ -78,8 +77,8 @@
       \includegraphics[width=0.9\textwidth]{inference.png}
     }
     \vspace{2em}
-    \alt<2->{
-      \alt<3->{
+    \alt<6->{
+      \alt<7->{
         \includegraphics[width=0.9\textwidth]{inspector-arrow.png}
       }{
         \includegraphics[width=0.9\textwidth]{inspector-int.png}
@@ -89,31 +88,43 @@
     }
   \end{center}
 
-  \begin{center}
-    Try it out at \\
-    \textcolor{MidnightBlue}{[\url{https://hazel.org/build/thi}]}
-  \end{center}
+  \vspace{-2em}
+  \begin{enumerate}
+    \small
+    \setlength\itemsep{1pt}
+    \item<2-> Gather constraints, treat occurrences of $\TUnknown$ as unification variables
+    \item<3-> When solvable, proceed as normal to find substitution
+    \item<4-> When unsolvable, maintain partial solutions: possible type fillings, \\
+          which are offered to the user for selection
+    \item<5-> Control returned to the bidirectional system upon selection
+  \end{enumerate}
+
+  % \begin{center}
+    % Try it out at \\
+    % \textcolor{MidnightBlue}{[\url{https://hazel.org/build/thi}]}
+  % \end{center}
 
   \begin{tikzpicture}[remember picture,overlay]
-    \node[xshift=-4.6cm, yshift=-4.7cm, visible on=<2>] at (current page.north east) { \mousePointer };
-    \node[xshift=-2.3cm, yshift=-4.7cm, visible on=<3>] at (current page.north east) { \mousePointer };
+    \node[xshift=-4.6cm, yshift=-4.7cm, visible on=<6>] at (current page.north east) { \mousePointer };
+    \node[xshift=-2.3cm, yshift=-4.7cm, visible on=<7>] at (current page.north east) { \mousePointer };
   \end{tikzpicture}
 
-  \note[item]{Without getting into the weeds of how exactly it all works, let's take the
-    previous example into Hazel with type hole inference}
+  \note[item]{Without getting into the weeds of how exactly it all works---you can refer to the
+    paper for the details---let's just take the previous example into our implementation of type
+    hole inference in Hazel}
+  \note[item]{This is a constraint-based inference system, so we gather constraints and try to solve
+    them with a standard unification algorithm}
   \note[item]{When unification is able to solve the constraints, things proceed as normal to find
     the appropriate substitution}
   \note[item]{However, like here, when unsolvable, the system degrades gracefully to maintain
     partial solutions by accumulating the possible type fillings}
-  \note[item]{Notice that the system has marked the unknown type, the type hole here as unsolvable}
+  \note[item]{So notice that the system has marked the unknown type, the type hole here as unsolvable}
   \note[item]{and the cursor inspector tells us that the constraints demand f be both an int and int
     -> unknown}
-  \note[item]{Instead of failing, type hole inference offers both possible fillings to the user, and
-    if we hover over each, we can preview and then click to select the one we want}
-  \note[item]{and by hovering over them, the code updates to show what would happen if we chose each
-    one}
-  \note[item]{When we hover over Int, it fills Int into the type hole, and now the application of f
-    is marked with an error because control has, in some sense, been returned to the bidirectional
+  \note[item]{Instead of failing, type hole inference collects and offers both possible fillings to
+    the user, and if we hover over each, we can preview and then click to select the one we want}
+  \note[item]{When hovering over Int, it fills Int into the type hole, and now the application of f
+    is marked with an error because control has been returned to the bidirectional
     system}
   \note[item]{Similarly, hovering over Int -> ? results in the second f being marked with an error}
 \end{frame}
@@ -137,4 +148,6 @@
     simply provide all potential type hole fillings to the user for selection}
   \note[item]{facilitating a workflow of filling in type holes and returning control to the marked
     lambda calculus}
+  \note[item]{It turns out that the bidirectional and unification approaches can work nicely
+    together!}
 \end{frame}

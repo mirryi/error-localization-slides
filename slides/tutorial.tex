@@ -64,22 +64,17 @@ let rec syn ctx e =
   match e with
     Var x ->
       match Ctx.lookup ctx x with
-        Some ty -> @\only<1-3>{ty}\only<4>{\goodcolor{PineGreen}{Ok(ty)}}@
-        None    -> @\goodcolor{red}{\only<1>{???}\only<2>{assert false}\only<3>{failwith (x ++ " is unbound")}\only<4>{Error(UnboundError(...))}}@
+        Some ty -> @\only<1-2>{ty}\only<3>{\goodcolor{PineGreen}{Ok(ty)}}@
+        None    -> @\goodcolor{red}{\only<1>{???}\only<2>{failwith (x ++ " is unbound")}\only<3>{Error(UnboundError(...))}}@
     ...
   \end{lstlisting}
-
-  \only<1>{\phantom{Option 1}}
-  \only<2>{Option 1: don't be ridiculous, that's impossible}
-  \only<3-4>{Option 2: uh oh, not my problem}
 
   \note[item]{This failure case poses a problem if we were to try implementing this rule, which like
     look something like this OCaml code}
   \note[item]{The None case of the variable lookup corresponds exactly to being unable to satisfy
     the premise, and it's not immediately obvious what we should do}
-  \note[item]{We could crash, though I don't think anyone would be very happy about this}
-  \note[item]{More realistically, we might throw an exception with a diagnostic and leave it to the
-    caller to handle}
+  \note[item]{A common approach is to simply throw an exception with a diagnostic and leave it to
+    the caller to handle}
   \note[item]{or similarly by returning an error value}
   \note[item]{In either case, we've aborted the type-checking early at the first error, and this
     failure to recover just isn't going to cut it for us 21st century folk}
@@ -120,7 +115,7 @@ let rec syn ctx e =
 
   \begin{mathpar}
     \inferrule{ }{
-      \consistent{\TUnknown}{\TMV}
+      \consistent\TUnknown{\TMV}
     }
 
     \inferrule{ }{
@@ -163,23 +158,12 @@ let rec syn ctx e =
             \mid           \samesizecolorbox{highlight}{\ECFree{x}}
   \end{array}\]
 
+  $\ECFree{x}$ is a \emph{marked term} denoting a free occurrence of $x$
+
   \note[item]{We'll take the original syntax, which we call unmarked, and add the aforementioned
     error marks, which are given by fancy parentheses and a subscript in red, but they're just
     symbolic representations of actual error messages}
-\end{frame}
-
-\begin{frame}
-  $\ECFree{x}$ is a \emph{marked term} denoting a free occurrence of $x$ \\[1em]
-
-  \begin{itemize}
-    \item Subscripts were chosen fairly arbitrarily
-
-    \item Purely a symbolic representation of an actual error diagnostic!
-  \end{itemize}
-
   \note[item]{For now, we've only a single error mark that denotes exactly the variable is free}
-  \note[item]{The box subscript here is fairly arbitrary and just indicates that the variable is
-    free}
 \end{frame}
 
 \begin{frame}[fragile]
@@ -397,30 +381,35 @@ let rec syn ctx e =
   % https://q.uiver.app/#q=WzAsMyxbMCwwLCJlIl0sWzIsMiwiXFxHYW1tYSBcXHZkYXNoIFxcY2hlY2t7ZX0gXFxSaWdodGFycm93IFxcdGF1IFxcXFwgXFxHYW1tYSBcXHZkYXNoIFxcY2hlY2t7ZX0gXFxMZWZ0YXJyb3cgXFx0YXUiXSxbMiwwLCJcXEdhbW1hIFxcdmRhc2ggZSBcXGxvb3BhcnJvd3JpZ2h0IFxcY2hlY2t7ZX0gXFxSaWdodGFycm93IFxcdGF1IFxcXFwgXFxHYW1tYSBcXHZkYXNoIGUgXFxsb29wYXJyb3dyaWdodCBcXGNoZWNre2V9IFxcTGVmdGFycm93IFxcdGF1Il0sWzAsMSwiIiwwLHsiY3VydmUiOi0zLCJjb2xvdXIiOlszMCw2MCw2MF19XSxbMCwyLCIiLDAseyJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkb3R0ZWQifX19XSxbMSwwLCJ7XFxffV57XFxzcXVhcmV9IiwwLHsiY3VydmUiOi0zLCJjb2xvdXIiOlswLDAsMjBdfSxbMCwwLDIwLDFdXSxbMywyLCIiLDAseyJzaG9ydGVuIjp7InNvdXJjZSI6MjB9LCJjb2xvdXIiOlswLDAsNDVdfV1d
   \newcommand{\mlnode}[1]{\begin{tabular}{@{}c@{}}#1\end{tabular}}
   \[\begin{tikzcd}[arrow style=tikz]
-         e
-      && {\mlnode{
-            \text{\textcolor{Black!50}{\small (\emph{marking})}} \\
-            $\ctxSynFixedInto{\ctx}{\EMV}{\ECMV}{\TMV}$ \\
-            $\ctxAnaFixedInto{\ctx}{\EMV}{\ECMV}{\TMV}$
-          }} \\
+      e
+        & & {\mlnode{
+              \text{\textcolor{Black!50}{\small (\emph{marking})}} \\
+              $\ctxSynFixedInto{\ctx}{\EMV}{\ECMV}{\TMV}$ \\
+              $\ctxAnaFixedInto{\ctx}{\EMV}{\ECMV}{\TMV}$
+            }} \\
       \\
-      && {\mlnode{
-            $\ctxSynTypeM{\ctx}{\ECMV}{\TMV}$ \\
-            $\ctxAnaTypeM{\ctx}{\ECMV}{\TMV}$ \\
-            \text{\textcolor{Black!50}{\small (\emph{marked})}}}}
+        & & {\mlnode{
+              $\ctxSynTypeM{\ctx}{\ECMV}{\TMV}$ \\
+              $\ctxAnaTypeM{\ctx}{\ECMV}{\TMV}$ \\
+              \text{\textcolor{Black!50}{\small (\emph{marked})}}}}
+          & {\text{\textcolor{Black!50}{\small (downstream services)}}}
     \arrow["{}"{name=0, anchor=center, inner sep=0}, color={\colorMKText}, curve={height=-40pt}, from=1-1, to=3-3]
     \arrow["{\text{\textcolor{Black!50}{\small (\emph{erasure})} } \erase{\_}}", curve={height=-40pt}, from=3-3, to=1-1]
+    \arrow["{}", dashed, color={Black!50}, from=3-3, to=3-4]
   \end{tikzcd}\]
 
+  \vspace{-1em}
+  \pause
   \begin{center}
     \small
-    Mechanized metatheory in Agda
+    Metatheory completely mechanized in Agda
     \textcolor{MidnightBlue}{[\href{https://github.com/hazelgrove/error-localization-agda}{hazelgrove/error-localization-agda}]} \ 
   \end{center}
 
   \note[item]{Putting these pieces together, we can view marking as a total function that
     takes arbitrary terms of the unmarked syntax, well-typed or not, to well-typed terms of the marked
     syntax}
+  \note[item]{These are then used by downstream services like code completion}
   \note[item]{The well-formedness theorem is then described by this identity loop}
   \note[item]{All this metatheory, mechanized in Agda, can be found in our artifact}
 \end{frame}
