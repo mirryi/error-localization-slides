@@ -442,15 +442,16 @@ let rec syn ctx e =
 
   \note[item]{So, we've described this recipe by which you can also take your existing type system
     and formalize how type errors are localized and recovered from}
-  \note[item]{You could technically start with a non-gradual type system, but you'll need to add the
-    unknown type for marking ill-typed programs}
+  \note[item]{You could start with a non-gradual type system, but you'll need to add the unknown
+    type for marking ill-typed programs}
   \note[item]{Systematically considering the success and failure cases of each typing rule, we saw
     how we can derive the marking rules}
-  \note[item]{And all the decisions about how to actually localize and mark were made along the way
-    by us, the language designers}
+  \note[item]{And all the decisions about how to actually localize were made along the way by us,
+    the language designers}
   \note[item]{The framework doesn't prescribe a particular localization strategy; we make no claims
     about having the only or best way to localize errors}
-  \note[item]{We're just giving the judgmental tools to formally describe how you're localizing}
+  \note[item]{We're just giving the judgmental tools to formally describe how you're actually doing
+    it}
   \note[item]{In the paper, we actually formalize the various localization strategies we saw for
     conditionals at the beginning of the talk}
 \end{frame}

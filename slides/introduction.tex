@@ -135,8 +135,7 @@ Main.hs:4:26: \textbf{\textcolor{red}{error}:} [GHC-39999]
 
   \note[item]{Now obviously these languages all have different kinds of type systems, but from this
     informal exercise we can observe that practical systems are type error-resilient to a
-    certain degree}
-  \note[item]{but}
+    certain degree, but}
   \note[item]{decisions about how to localize can vary, and often tools will try to guess users'
     intentions about where to localize errors to}
   \note[item]{Then, to recover, they have to somehow operate with incomplete knowledge about the
@@ -209,14 +208,15 @@ Main.hs:4:26: \textbf{\textcolor{red}{error}:} [GHC-39999]
       }
   \end{itemize}
 
+  \only<1-4>{
   \note[item]{In this work, we've developed techniques to achieve total type error localization and
-    recovery}
-  \note[item]{by elegantly blending local and global type inference}
-  \note[item]{For the former, we present in tutorial-style the marked lambda calculus}
-  \note[item]{a judgmental framework for type error localization and recovery for bidirectional type
-    systems}
+    recovery by elegantly blending local and global type inference}
+  \note[item]{For the former, we present in tutorial-style the marked lambda calculus, a judgmental
+    framework for type error localization and recovery for bidirectional type systems}
   \note[item]{We choose bidirectional systems as our starting point because it creates a flow of
     typing data that is conducive to intuitive error localization}
+  }
+  \only<5->{
   \note[item]{Then, we'll describe type hole inference, or how to layer a global constraint-based
     inference system atop the marked lambda calculus in a way that allows us to neatly combine the
     bidirectional and unification approaches for even better localization}
@@ -224,4 +224,5 @@ Main.hs:4:26: \textbf{\textcolor{red}{error}:} [GHC-39999]
     techniques, in this talk we'll hopefully see how they supplement each other}
   \note[item]{And hopefully you'll be able to see how these techniques are fairly generally and
     applicable}
+  }
 \end{frame}

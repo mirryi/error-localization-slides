@@ -54,6 +54,9 @@
   \note[item]{Rather than being a standalone type checker, this is an example of a downstream
     service that uses the marked terms that result from marking and supplements the marked lambda
     calculus}
+  \note[item]{Without getting into the weeds of how exactly it all works---you can refer to the
+    paper for the details---let's just take the previous example into our implementation of type
+    hole inference in Hazel}
 \end{frame}
 
 \newcommand{\Id}[1]{\ensuremath{\goodcolor{hole}{#1}}}
@@ -109,24 +112,25 @@
     \node[xshift=-2.3cm, yshift=-4.7cm, visible on=<7>] at (current page.north east) { \mousePointer };
   \end{tikzpicture}
 
-  \note[item]{Without getting into the weeds of how exactly it all works---you can refer to the
-    paper for the details---let's just take the previous example into our implementation of type
-    hole inference in Hazel}
+  \only<1-5>{
   \note[item]{This is a constraint-based inference system, so we gather constraints and try to solve
     them with a standard unification algorithm}
   \note[item]{When unification is able to solve the constraints, things proceed as normal to find
     the appropriate substitution}
   \note[item]{However, like here, when unsolvable, the system degrades gracefully to maintain
-    partial solutions by accumulating the possible type fillings}
+    partial solutions by accumulating the possible type fillings, which are then offered to the user
+    for selection}
   \note[item]{So notice that the system has marked the unknown type, the type hole here as unsolvable}
   \note[item]{and the cursor inspector tells us that the constraints demand f be both an int and int
     -> unknown}
-  \note[item]{Instead of failing, type hole inference collects and offers both possible fillings to
-    the user, and if we hover over each, we can preview and then click to select the one we want}
+  \note[item]{Instead of failing outright, type hole inference collects and offers both possible fillings to
+    the user, and if we hover over each, we can preview and then click to select the one we intend}
+  }
+  \only<6->{
   \note[item]{When hovering over Int, it fills Int into the type hole, and now the application of f
-    is marked with an error because control has been returned to the bidirectional
-    system}
+    is marked with an error because control has been returned naturally to the bidirectional system}
   \note[item]{Similarly, hovering over Int -> ? results in the second f being marked with an error}
+  }
 \end{frame}
 
 \begin{frame}
